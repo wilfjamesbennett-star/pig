@@ -1255,7 +1255,7 @@ function kill(e,src,head){
   if(e.isBot){
     e.mesh.rotation.x=-Math.PI/2;e.mesh.position.y=.22;
     const t=pick(['med','shield','ammo','mats']);spawnPickup(t,e.x,e.z);
-    if(src===P)toast(`ELIMINATED ${e.name}`,1400);
+    if(src===P)toast(`ELIMINATED ${e.name}  +10 Shards`,1400);
   }
   if(e===P){
     if(P.car){P.car.occupied=false;P.car=null}
@@ -1266,13 +1266,13 @@ function kill(e,src,head){
 function endGame(win){
   if(gameOver)return;gameOver=true;
   const place=win?1:aliveCount+1;
-  const reward=25+P.kills*40+(win?300:Math.max(0,(25-place)*6));
+  const reward=P.kills*10+(win?50:0);   // 10 Vex-Shards per elimination, 50 for a win
   SAVE.vb+=reward;SAVE.stats.kills+=P.kills;if(win)SAVE.stats.wins++;persist();
   document.exitPointerLock&&document.exitPointerLock();
   setTimeout(()=>{
     $('endtitle').textContent=win?'VICTORY ROYALE':'ELIMINATED';
     $('endtitle').style.backgroundImage=win?'linear-gradient(90deg,#ffe45e,#ffb300)':'';
-    $('endsub').textContent=(win?`You are the last one standing · ${P.kills} eliminations`:`You placed #${place} of 25 · ${P.kills} eliminations`)+` · +${reward} Vex-Shards`;
+    $('endsub').textContent=(win?`You are the last one standing · ${P.kills} eliminations`:`You placed #${place} of 25 · ${P.kills} eliminations`)+` · +${reward} Vex-Shards (${P.kills} × 10${win?' + 50 win bonus':''})`;
     $('end').classList.remove('hidden');
   },win?800:1600);
 }
@@ -1830,7 +1830,7 @@ function frame(now){
 }
 init();
 requestAnimationFrame(frame);
-window.__game={W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
+window.__game={end:w=>endGame(w),W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
 })();
 </script>
 </body>
