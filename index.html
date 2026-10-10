@@ -1107,7 +1107,7 @@ addEventListener('keydown',e=>{
   }
 });
 addEventListener('keyup',e=>{if(keyMap[e.code])keys[keyMap[e.code]]=false});
-addEventListener('mousedown',e=>{if(e.button===0){mouseDown=true;if(running&&!paused&&!gameOver&&P.build&&(P.state==='foot')&&document.pointerLockElement)placePiece()}});
+addEventListener('mousedown',e=>{if(e.button===0){mouseDown=true;if(running&&!paused&&!gameOver&&P.build&&(P.state==='foot')&&(document.pointerLockElement||window.__noLockOK))placePiece()}});
 addEventListener('mouseup',e=>{if(e.button===0)mouseDown=false});
 addEventListener('mousemove',e=>{
   if(!running||paused||gameOver)return;
@@ -1123,7 +1123,10 @@ document.addEventListener('pointerlockchange',()=>{
   if(document.pointerLockElement!==canvas){paused=true;$('pause').classList.remove('hidden');keys.w=keys.a=keys.s=keys.d=keys.shift=keys.space=false;mouseDown=false}
   else{paused=false;$('pause').classList.add('hidden')}
 });
-function lock(){const p=canvas.requestPointerLock&&canvas.requestPointerLock();if(p&&p.catch)p.catch(()=>{})}
+function lock(){
+  try{const p=canvas.requestPointerLock&&canvas.requestPointerLock();if(p&&p.catch)p.catch(()=>{window.__noLockOK=true})}catch(e){window.__noLockOK=true}
+  if(!canvas.requestPointerLock)window.__noLockOK=true;
+}
 $('resume').onclick=lock;$('pause').onclick=lock;
 $('play').onclick=()=>{
   initAudio();
