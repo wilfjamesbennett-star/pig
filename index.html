@@ -151,6 +151,28 @@
   #siren{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s;animation:siren .7s steps(1) infinite}
   @keyframes siren{0%{box-shadow:inset 0 0 140px 30px rgba(255,40,40,.55)}50%{box-shadow:inset 0 0 140px 30px rgba(50,110,255,.55)}}
   @media (max-height:640px){.modeBtn span{display:none}.modeBtn{min-height:34px;padding:4px 10px}.modeBtn i{font-size:18px}#modeBox{top:168px;gap:4px}#modeTag{display:none}#lbPlay{font-size:30px;padding:6px 0}#lbPlayBox{bottom:20px}}
+  /* big map + quests */
+  #bigMapWrap{position:absolute;inset:0;background:rgba(4,6,26,.82);display:flex;align-items:center;justify-content:center;gap:18px;pointer-events:auto;z-index:4;padding:12px}
+  .bmBox{display:flex;flex-direction:column;gap:6px}
+  .bmHead{display:flex;align-items:center;gap:14px;font-weight:800;letter-spacing:2px;text-shadow:0 2px 6px #000}
+  .bmHead b{font-size:20px;font-style:italic}#bmWhere{font-size:13px;color:#9fe2ff;flex:1}
+  #bmClose{background:#10143c;border:2px solid #3a4aa8;color:#fff;font:900 20px/1 Arial,sans-serif;width:36px;height:36px;cursor:pointer}
+  #bigMap{width:min(80vh,64vw);height:min(80vh,64vw);border:3px solid #3a4aa8;cursor:crosshair;background:#222;box-shadow:0 12px 40px #000a}
+  .bmFoot{font-size:12px;opacity:.8;letter-spacing:1px}
+  #bmQuests{width:min(300px,28vw);max-height:84vh;overflow:auto;text-shadow:0 1px 4px #000}
+  #bmQuests h5,#quests h5{margin:10px 0 6px;font-size:12px;letter-spacing:3px;color:#ffd23f}#bmQuests h5:first-child,#quests h5{margin-top:0}
+  .bmLeg{font-size:12px;opacity:.8}
+  .bmLms{display:flex;flex-wrap:wrap;gap:5px}.bmLms span{font-size:11px;padding:3px 8px;background:#10143ccc;border:1px solid #2d3a90;opacity:.65}.bmLms span.on{background:#14522a;border-color:#3fe07a;opacity:1}
+  .qRow{background:#10143ccc;border:2px solid #2d3a90;padding:8px 10px;margin-bottom:6px}.qRow.done{border-color:#3fe07a;background:#0f3a24cc}
+  .qTop{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:13px}.qRw{display:flex;align-items:center;gap:4px;color:#ffd23f;white-space:nowrap}.qRw .shard{width:16px;height:16px}
+  .qBar{height:6px;background:#050720;margin-top:6px;overflow:hidden}.qBar i{display:block;height:100%;background:linear-gradient(90deg,#39e0ff,#7b5cff)}.qRow.done .qBar i{background:#3fe07a}
+  .qNum{font-size:10px;letter-spacing:1.5px;opacity:.75;margin-top:3px}
+  .qList{max-width:640px}
+  #quests{position:absolute;right:16px;top:44%;width:240px;display:none;font-size:12px;text-shadow:0 1px 3px #000}
+  #quests .qRow{padding:5px 8px;margin-bottom:4px;border-width:0;border-left:3px solid #7b5cff;background:#0a0c2acc}#quests .qRow.done{border-left-color:#3fe07a}
+  #quests .qTop{font-size:12px}#quests .qBar{height:4px;margin-top:4px}#quests .qNum{display:none}
+  #tabQuests{padding:14px 32px;background:linear-gradient(#0b0f33f2,#150b3af2);overflow:auto}
+  @media (max-width:900px){#bmQuests{display:none}#bigMap{width:min(86vh,92vw);height:min(86vh,92vw)}}
 </style>
 </head>
 <body>
@@ -182,9 +204,11 @@
   </div>
   <div id="hint">
     <b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>Mouse</b> aim/shoot · <b>Right-click</b> aim down sights · <b>[ ]</b> sensitivity · <b>R</b> reload · <b>1-3</b> weapon<br>
-    <b>F</b> enter/exit car · <b>Q</b> build mode · <b>Space</b> handbrake in car · <b>E</b> emote (cycles) · <b>Z X C</b> slots · <b>H</b> hide this
+    <b>F</b> enter/exit car · <b>Q</b> build mode · <b>Space</b> handbrake in car · <b>E</b> emote (cycles) · <b>Z X C</b> slots · <b>M</b> map · <b>H</b> hide this
   </div>
   <div id="modeHud"></div>
+  <div id="quests"></div>
+  <div id="bigMapWrap" class="hidden"><div class="bmBox"><div class="bmHead"><b>CITY MAP</b><span id="bmWhere"></span><button id="bmClose" aria-label="Close map">×</button></div><canvas id="bigMap" width="720" height="720"></canvas><div class="bmFoot">Click the map to set or clear a waypoint · M or Esc to close</div></div><div id="bmQuests"></div></div>
   <div id="siren"></div>
   <div id="squad"></div>
   <div id="dmg"></div><div id="stormfx"></div>
@@ -193,7 +217,7 @@
 <div id="lobby" class="hidden">
   <header id="lbTop">
     <div class="logo">OUTLAW<span>RUSH</span></div>
-    <nav id="tabs"><button data-tab="lobby" class="on">LOBBY</button><button data-tab="locker">LOCKER</button><button data-tab="shop">ITEM SHOP</button><button data-tab="friends">FRIENDS</button></nav>
+    <nav id="tabs"><button data-tab="lobby" class="on">LOBBY</button><button data-tab="locker">LOCKER</button><button data-tab="shop">ITEM SHOP</button><button data-tab="friends">FRIENDS</button><button data-tab="quests">QUESTS</button></nav>
     <div id="vb" title="Vex-Shards"><i></i><b id="vbn">0</b></div>
   </header>
 
@@ -222,6 +246,8 @@
   <section id="tabFriends" class="tab hidden">
     <div id="lkLeft"><div id="frBody"></div></div>
   </section>
+
+  <section id="tabQuests" class="tab hidden"><div id="qBody"></div></section>
 
   <section id="tabShop" class="tab hidden">
     <div class="shopHead"><h2>ITEM SHOP</h2><div id="shopTimer"></div></div>
@@ -903,7 +929,7 @@ function updateLobby(dt){
   const tx=LB.tab==='locker'?1.3:LB.tab==='friends'?.7:LB.tab==='lobby'?(LB.mates.length?-.95:-.7):0;
   ch.position.x+=(tx-ch.position.x)*Math.min(1,dt*6);
   lobbyPad.position.x=ch.position.x+(LB.mates.length?.9:0);lobbyPad.scale.x=LB.mates.length?1.55:1;updateMates(dt,ch.position.x,ch.visible&&(LB.tab==='lobby'||LB.tab==='friends'));LB.glider.position.x=ch.position.x;
-  ch.visible=LB.tab!=='shop';lobbyPad.visible=ch.visible;LB.glider.visible=ch.visible&&LB.tab==='locker'&&LB.cat==='glider';
+  ch.visible=LB.tab!=='shop'&&LB.tab!=='quests';lobbyPad.visible=ch.visible;LB.glider.visible=ch.visible&&LB.tab==='locker'&&LB.cat==='glider';
   LB.glider.rotation.y+=dt*.6;
   const u=ch.userData;
   if(LB.emote){
@@ -1048,8 +1074,8 @@ $('bmBuy').onclick=()=>{
 function showTab(t){
   LB.tab=t;
   for(const b of document.querySelectorAll('#tabs button'))b.classList.toggle('on',b.dataset.tab===t);
-  $('tabLobby').classList.toggle('hidden',t!=='lobby');$('tabLocker').classList.toggle('hidden',t!=='locker');$('tabShop').classList.toggle('hidden',t!=='shop');$('tabFriends').classList.toggle('hidden',t!=='friends');
-  if(t==='friends')renderFriends();if(t==='locker')renderLocker();if(t==='shop'){renderShop();tickShopTimer();SAVE.seenDrop=curDrop();persist()}
+  $('tabLobby').classList.toggle('hidden',t!=='lobby');$('tabLocker').classList.toggle('hidden',t!=='locker');$('tabShop').classList.toggle('hidden',t!=='shop');$('tabFriends').classList.toggle('hidden',t!=='friends');$('tabQuests').classList.toggle('hidden',t!=='quests');
+  if(t==='quests')renderQuestTab();if(t==='friends')renderFriends();if(t==='locker')renderLocker();if(t==='shop'){renderShop();tickShopTimer();SAVE.seenDrop=curDrop();persist()}
   refreshVB();
 }
 for(const b of document.querySelectorAll('#tabs button'))b.onclick=()=>showTab(b.dataset.tab);
@@ -1059,6 +1085,7 @@ $('tabLobby').addEventListener('click',e=>{
   playEmote(byId(ids[LB.emoteIdx++%ids.length]));
 });
 function tickDrops(){
+  {const wk=SAVE.quests&&SAVE.quests.week;ensureQuestWeek();if(inLobby&&LB.tab==='quests'&&(wk!==SAVE.quests.week||Date.now()%30000<1000))renderQuestTab()}
   const left=dropStart(curDrop()+1)-Date.now();
   const d=Math.floor(left/DAY_MS),h=Math.floor(left%DAY_MS/36e5),m=Math.floor(left%36e5/6e4),sc=Math.floor(left%6e4/1e3);
   const p2=n=>String(n).padStart(2,'0');
@@ -1283,7 +1310,7 @@ function netMatchTick(dt){
   const key=JSON.stringify(patch);if(key===NET.lastKey)return;NET.lastKey=key;
   partyPush(patch);
 }
-function startEmote(it){P.emote={name:it.anim,t:0};NET.em={n:it.anim,t:Date.now()}}
+function startEmote(it){P.emote={name:it.anim,t:0};NET.em={n:it.anim,t:Date.now()};qEvent('emote',1)}
 let squadT=0;
 function updateSquadHUD(dt){
   squadT+=dt;if(squadT<.3)return;squadT=0;
@@ -1464,7 +1491,7 @@ function endMode(win,title,sub,reward){
 }
 function leaveMatch(){
   if(MODE.id==='roam'&&!gameOver){endMode(false,'FREE ROAM OVER',`You left with $${P.cash} · ${P.kills} takedowns`,Math.min(100,Math.floor(P.cash/50)));return}
-  location.reload();
+  persist();location.reload();
 }
 function checkGold(){
   toast(`GOLD BRICK ${MST.gold}/${MST.GOLD}`,1200);
@@ -1547,6 +1574,184 @@ function renderModes(){
   $('modeTag').textContent=MODES[SAVE.mode].tag;
 }
 if(!MODES[SAVE.mode])SAVE.mode='br';
+
+/* ============================ LANDMARKS / BIG MAP / QUESTS ============================ */
+const LANDMARKS=[];
+{
+  const pn=['Vex Park','Neon Gardens','Cyber Commons','Sakura Square','Echo Green','Pixel Park'];
+  parks.slice(0,6).forEach((p,i)=>LANDMARKS.push({name:pn[i],x:p.cx,z:p.cz,r:26,kind:'park'}));
+  const tn=['Chrome Tower','Skyline Spire','Outlaw Heights','Vex Tower'];
+  boxes.filter(b=>b.building).sort((a,b)=>b.y1-a.y1).slice(0,4).forEach((b,i)=>LANDMARKS.push({name:tn[i],x:(b.x0+b.x1)/2,z:(b.z0+b.z1)/2,r:Math.hypot(b.x1-b.x0,b.z1-b.z0)/2+10,kind:'tower'}));
+  LANDMARKS.push({name:'Storm Square',x:0,z:0,r:16,kind:'plaza'},{name:'Old Town',x:-240,z:-240,r:18,kind:'plaza'},{name:'Neon Mile',x:240,z:240,r:18,kind:'plaza'},
+    {name:'Harbor Yards',x:240,z:-240,r:18,kind:'plaza'},{name:'Dust Row',x:-240,z:240,r:18,kind:'plaza'});
+}
+/** direction the player is facing, as a camera yaw (0 = facing -z / map north) */
+const heading=()=>P.state==='car'&&P.car?P.car.yaw+Math.PI:P.camYaw;
+function drawArrow(g,x,y,size,color){
+  g.save();g.translate(x,y);g.rotate(-heading());      // canvas y = world z, so a camera yaw of 0 points straight up
+  g.fillStyle=color||'#fff';g.strokeStyle='#000';g.lineWidth=1.5;
+  g.beginPath();g.moveTo(0,-size);g.lineTo(size*.75,size*.9);g.lineTo(0,size*.4);g.lineTo(-size*.75,size*.9);g.closePath();g.fill();g.stroke();g.restore();
+}
+const gridName=(x,z)=>'ABCDEFGHIJ'[clamp(Math.floor(x/PITCH+5),0,9)]+(clamp(Math.floor(z/PITCH+5),0,9)+1);
+let WP=null,mapOpen=false;
+const MAPN=720,MAP_O=HALF+PITCH/2,MAP_K=MAPN/(HALF*2+PITCH);
+const bigCv=$('bigMap'),bigG=bigCv.getContext('2d');
+const b2m=(x,z)=>[(x+MAP_O)*MAP_K,(z+MAP_O)*MAP_K];
+function drawBigMap(){
+  const g=bigG,N=MAPN;g.clearRect(0,0,N,N);g.imageSmoothingEnabled=true;
+  g.drawImage(mapCanvas,0,0,N,N);
+  // grid + labels
+  g.strokeStyle='rgba(255,255,255,.12)';g.lineWidth=1;
+  for(const c of roadCoords){const [gx]=b2m(c,0),[,gz]=b2m(0,c);g.beginPath();g.moveTo(gx,0);g.lineTo(gx,N);g.moveTo(0,gz);g.lineTo(N,gz);g.stroke()}
+  g.fillStyle='rgba(255,255,255,.55)';g.font='bold 13px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';
+  for(let i=0;i<10;i++){const [cx,cz]=b2m((i-4.5)*PITCH,(i-4.5)*PITCH);g.fillText('ABCDEFGHIJ'[i],cx,10);g.fillText(String(i+1),10,cz)}
+  // team bases
+  if(MODE.teams){for(const t of ['red','blue']){const [,zz]=b2m(0,TEAMS[t].z);g.fillStyle=t==='red'?'rgba(255,60,60,.22)':'rgba(60,140,255,.22)';g.fillRect(0,zz-24,N,48);g.fillStyle=TEAMS[t].css;g.font='bold 15px "Segoe UI",Arial,sans-serif';g.fillText(TEAMS[t].name+' BASE',N/2,zz)}}
+  // storm
+  if(MODE.id==='br'){
+    const [sx,sz]=b2m(storm.cx,storm.cz),sr=storm.r*MAP_K;
+    g.save();g.beginPath();g.rect(0,0,N,N);g.arc(sx,sz,sr,0,6.29,true);g.fillStyle='rgba(140,50,255,.45)';g.fill('evenodd');g.restore();
+    g.strokeStyle='#c79bff';g.lineWidth=3;g.beginPath();g.arc(sx,sz,sr,0,6.29);g.stroke();
+    if(storm.to&&storm.idx<99){const [tx,tz]=b2m(storm.to.cx,storm.to.cz);g.strokeStyle='#fff';g.lineWidth=2.5;g.setLineDash([8,6]);g.beginPath();g.arc(tx,tz,storm.to.r*MAP_K,0,6.29);g.stroke();g.setLineDash([])}
+  }
+  // landmarks
+  const lmQuest=MODE.id==='br'&&QUESTS.some(q=>q.k==='landmark'&&!SAVE.quests.done[q.id]);
+  g.font='bold 12px "Segoe UI",Arial,sans-serif';
+  for(const lm of LANDMARKS){const [x,z]=b2m(lm.x,lm.z),seen=SAVE.quests&&SAVE.quests.lm[lm.name];
+    g.fillStyle=seen?'#7dff9a':(lmQuest?'#ffd23f':'rgba(255,255,255,.85)');
+    g.beginPath();g.moveTo(x,z-7);g.lineTo(x+6,z);g.lineTo(x,z+7);g.lineTo(x-6,z);g.closePath();g.fill();g.strokeStyle='#000';g.lineWidth=1.5;g.stroke();
+    g.fillStyle='#fff';g.strokeStyle='rgba(0,0,0,.8)';g.lineWidth=3;g.textAlign='center';g.strokeText(lm.name,x,z+17);g.fillText(lm.name,x,z+17)}
+  // pickups / vehicles / people
+  for(const pk of pickups){const [x,z]=b2m(pk.x,pk.z);g.fillStyle='#'+PICKTYPES[pk.type].col.toString(16).padStart(6,'0');g.fillRect(x-2.5,z-2.5,5,5)}
+  g.fillStyle='#ffd23f';for(const v of vehicles){if(v.dead||v.ai)continue;const [x,z]=b2m(v.x,v.z);g.fillRect(x-3,z-3,6,6)}
+  if(MODE.teams)for(const b of bots){if(!b.alive)continue;const ally=b.team===P.team;if(!ally&&!(timeNow<MST.uav))continue;const [x,z]=b2m(b.x,b.z);g.fillStyle=ally?'#5aa8ff':'#ff4a4a';g.fillRect(x-4,z-4,8,8)}
+  if(MODE.id==='roam')for(const b of bots){if(!b.cop||!b.alive)continue;const [x,z]=b2m(b.x,b.z);g.fillStyle=(Math.floor(timeNow*3)%2)?'#ff4a4a':'#4aa8ff';g.fillRect(x-4,z-4,8,8)}
+  g.fillStyle='#7df0ff';for(const r of NET.remotes.values()){const [x,z]=b2m(r.x,r.z);g.beginPath();g.arc(x,z,6,0,6.29);g.fill();g.strokeStyle='#000';g.lineWidth=1.5;g.stroke()}
+  // waypoint
+  if(WP){const [x,z]=b2m(WP.x,WP.z);g.fillStyle='#ff3bd4';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x,z);g.lineTo(x-8,z-18);g.lineTo(x+8,z-18);g.closePath();g.fill();g.stroke();g.beginPath();g.arc(x,z-24,8,0,6.29);g.fill();g.stroke()}
+  // you
+  {const [x,z]=b2m(P.x,P.z);drawArrow(g,x,z,12,'#ffffff')}
+  $('bmWhere').textContent=`YOU · ${gridName(P.x,P.z)}`+(WP?` · WAYPOINT ${Math.round(Math.hypot(WP.x-P.x,WP.z-P.z))} m`:'');
+}
+function openMap(){
+  if(mapOpen||!running||gameOver)return;mapOpen=true;mouseDown=false;P.ads=false;
+  $('bigMapWrap').classList.remove('hidden');renderMapQuests();drawBigMap();
+  document.exitPointerLock&&document.exitPointerLock();
+}
+function closeMap(){
+  if(!mapOpen)return;mapOpen=false;$('bigMapWrap').classList.add('hidden');
+  if(!paused&&!gameOver)lock();
+}
+const toggleMap=()=>mapOpen?closeMap():openMap();
+bigCv.addEventListener('click',e=>{
+  const r=bigCv.getBoundingClientRect(),mx=(e.clientX-r.left)/r.width*MAPN,mz=(e.clientY-r.top)/r.height*MAPN;
+  const x=mx/MAP_K-MAP_O,z=mz/MAP_K-MAP_O;
+  if(WP&&Math.hypot(WP.x-x,WP.z-z)<14){WP=null;toast('Waypoint cleared',900)}else{WP={x:clamp(x,-HALF,HALF),z:clamp(z,-HALF,HALF)};toast('Waypoint set · '+gridName(WP.x,WP.z),1100)}
+  drawBigMap();
+});
+$('bmClose').onclick=closeMap;
+function mapTick(dt){if(!mapOpen)return;mapTick.t=(mapTick.t||0)+dt;if(mapTick.t>.1){mapTick.t=0;drawBigMap();renderMapQuests()}}
+/** minimap overlays: waypoint, quest landmarks, north marker (called inside the clipped minimap context) */
+function minimapExtras(g,S,k,w2m){
+  if(MODE.id==='br'&&QUESTS.some(q=>q.k==='landmark'&&!SAVE.quests.done[q.id])){
+    for(const lm of LANDMARKS){if(SAVE.quests.lm[lm.name])continue;const [x,z]=w2m(lm.x,lm.z);if(Math.hypot(x-S/2,z-S/2)>S/2-6)continue;
+      g.fillStyle='#ffd23f';g.strokeStyle='#000';g.lineWidth=1;g.beginPath();g.moveTo(x,z-5);g.lineTo(x+4,z);g.lineTo(x,z+5);g.lineTo(x-4,z);g.closePath();g.fill();g.stroke()}
+  }
+  if(WP){
+    let [x,z]=w2m(WP.x,WP.z);const dx=x-S/2,dz=z-S/2,d=Math.hypot(dx,dz),lim=S/2-9;
+    if(d>lim){x=S/2+dx/d*lim;z=S/2+dz/d*lim}
+    g.fillStyle='#ff3bd4';g.strokeStyle='#fff';g.lineWidth=1.5;g.beginPath();g.moveTo(x,z-8);g.lineTo(x+6,z);g.lineTo(x,z+8);g.lineTo(x-6,z);g.closePath();g.fill();g.stroke();
+    g.fillStyle='#fff';g.font='bold 10px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.strokeStyle='#000';g.lineWidth=3;
+    const t=Math.round(Math.hypot(WP.x-P.x,WP.z-P.z))+'m';g.strokeText(t,S/2,S-8);g.fillText(t,S/2,S-8);
+  }
+  g.fillStyle='#fff';g.font='bold 11px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.strokeStyle='#000';g.lineWidth=3;g.strokeText('N',S/2,10);g.fillText('N',S/2,10);
+}
+
+/* ---- weekly quests (Battle Royale) ---- */
+const QT=[
+  {k:'elim',txt:n=>`Eliminate ${n} players`,lo:12,hi:25,rw:[70,130]},
+  {k:'headshot',txt:n=>`Get ${n} headshot eliminations`,lo:3,hi:8,rw:[70,130]},
+  {k:'dmg',txt:n=>`Deal ${n} damage to opponents`,lo:1500,hi:3500,rw:[60,110],step:100},
+  {k:'build',txt:n=>`Place ${n} building pieces`,lo:50,hi:120,rw:[50,100],step:5},
+  {k:'drive',txt:n=>`Drive ${n} metres in vehicles`,lo:2500,hi:6000,rw:[50,100],step:250},
+  {k:'carkill',txt:n=>`Run over ${n} opponents`,lo:2,hi:5,rw:[60,110]},
+  {k:'pickup',txt:n=>`Collect ${n} loot items`,lo:20,hi:45,rw:[40,90],step:5},
+  {k:'emote',txt:n=>`Perform ${n} emotes`,lo:5,hi:12,rw:[40,80]},
+  {k:'win',txt:n=>`Win ${n} match${n>1?'es':''}`,lo:1,hi:2,rw:[120,200]},
+  {k:'storm3',txt:n=>`Survive to the third storm circle in ${n} matches`,lo:2,hi:4,rw:[60,110]},
+  {k:'landmark',txt:n=>`Discover ${n} different landmarks`,lo:5,hi:9,rw:[80,140]},
+  {k:'shotgun',txt:n=>`Get ${n} eliminations with the shotgun`,lo:3,hi:7,rw:[60,110]},
+  {k:'matches',txt:n=>`Play ${n} Battle Royale matches`,lo:4,hi:8,rw:[50,100]},
+];
+function genQuests(week){
+  const r=seeded(week*104729+7),mustHave=['landmark','elim'];
+  const pool=QT.filter(t=>!mustHave.includes(t.k)),chosen=QT.filter(t=>mustHave.includes(t.k));
+  while(chosen.length<6)chosen.push(pool.splice(Math.floor(r()*pool.length),1)[0]);
+  return chosen.map(t=>{const step=t.step||1;const n=Math.max(step,Math.round((t.lo+(t.hi-t.lo)*r())/step)*step);
+    const rw=Math.round((t.rw[0]+(t.rw[1]-t.rw[0])*r())/5)*5;return {id:`q${week}_${t.k}`,k:t.k,n,rw,txt:t.txt(n)}});
+}
+let QUESTS=genQuests(dropAt(Date.now())),QDIRTY=false;
+function ensureQuestWeek(){
+  const w=dropAt(Date.now());
+  if(!SAVE.quests||SAVE.quests.week!==w){SAVE.quests={week:w,prog:{},done:{},lm:{}};QUESTS=genQuests(w);persist()}
+}
+ensureQuestWeek();
+const QM={s3:false};
+function qEvent(k,n=1){
+  if(MODE.id!=='br')return;ensureQuestWeek();const S=SAVE.quests;
+  for(const q of QUESTS){
+    if(q.k!==k||S.done[q.id])continue;
+    S.prog[q.id]=Math.min(q.n,(S.prog[q.id]||0)+n);QDIRTY=true;
+    if(S.prog[q.id]>=q.n){S.done[q.id]=1;SAVE.vb+=q.rw;persist();QDIRTY=false;refreshVB();toast(`QUEST COMPLETE  ·  ${q.txt}  ·  +${q.rw} Vex-Shards`,3800);sfx('pickup',1)}
+  }
+}
+let qSaveT=0,qLmT=0,qHudT=0;
+function updateQuests(dt){
+  if(MODE.id!=='br'||!running)return;
+  ensureQuestWeek();
+  qSaveT+=dt;if(QDIRTY&&qSaveT>3){persist();QDIRTY=false;qSaveT=0}
+  qLmT+=dt;
+  if(qLmT>.4&&P.alive&&(P.state==='foot'||P.state==='car')){
+    qLmT=0;
+    for(const lm of LANDMARKS){if(SAVE.quests.lm[lm.name])continue;if(Math.hypot(lm.x-P.x,lm.z-P.z)<lm.r){SAVE.quests.lm[lm.name]=1;toast(`DISCOVERED  ·  ${lm.name}`,1800);sfx('pickup',.8);qEvent('landmark',1);QDIRTY=true}}
+  }
+  if(!QM.s3&&storm.idx>=2&&P.alive&&!gameOver){QM.s3=true;qEvent('storm3',1)}
+  qHudT+=dt;if(qHudT>.4){qHudT=0;updateQuestHUD()}
+}
+function qRowHtml(q,compact){
+  const S=SAVE.quests,p=S.prog[q.id]||0,done=!!S.done[q.id],pct=Math.min(100,p/q.n*100);
+  const num=q.k==='drive'||q.k==='dmg'?`${Math.floor(p)}/${q.n}`:`${Math.floor(p)}/${q.n}`;
+  return `<div class="qRow${done?' done':''}"><div class="qTop"><span class="qText"></span><span class="qRw"><i class="shard"></i>${q.rw}</span></div><div class="qBar"><i style="width:${pct}%"></i></div><div class="qNum">${done?'COMPLETE':num}</div></div>`;
+}
+function fillQuestRows(el,list,compact){
+  el.innerHTML=list.map(q=>qRowHtml(q,compact)).join('');
+  [...el.querySelectorAll('.qText')].forEach((n,i)=>n.textContent=list[i].txt);
+}
+function updateQuestHUD(){
+  const el=$('quests');if(MODE.id!=='br'||gameOver){el.style.display='none';return}
+  const S=SAVE.quests,open=QUESTS.filter(q=>!S.done[q.id]).sort((a,b)=>(S.prog[b.id]||0)/b.n-(S.prog[a.id]||0)/a.n).slice(0,3);
+  if(!open.length){el.style.display='none';return}
+  el.style.display='block';const sig=open.map(q=>q.id+':'+Math.floor(S.prog[q.id]||0)).join();
+  if(sig!==updateQuestHUD.sig){updateQuestHUD.sig=sig;el.innerHTML='<h5>QUESTS</h5><div></div>';fillQuestRows(el.lastChild,open,true)}
+}
+function renderMapQuests(){
+  const el=$('bmQuests');
+  if(MODE.id!=='br'){el.innerHTML='<h5>LEGEND</h5><div class="bmLeg">◆ landmark · ▲ waypoint · ■ vehicle</div>';return}
+  const S=SAVE.quests;
+  el.innerHTML='<h5>WEEKLY QUESTS</h5><div id="bmQl"></div><h5>LANDMARKS '+LANDMARKS.filter(l=>S.lm[l.name]).length+'/'+LANDMARKS.length+'</h5><div class="bmLms"></div>';
+  fillQuestRows(el.querySelector('#bmQl'),QUESTS,true);
+  const box=el.querySelector('.bmLms');
+  for(const lm of LANDMARKS){const s=document.createElement('span');s.textContent=lm.name;if(S.lm[lm.name])s.className='on';box.appendChild(s)}
+}
+function renderQuestTab(){
+  ensureQuestWeek();const S=SAVE.quests,el=$('qBody');
+  const left=dropStart(curDrop()+1)-Date.now(),d=Math.floor(left/DAY_MS),h=Math.floor(left%DAY_MS/36e5);
+  const done=QUESTS.filter(q=>S.done[q.id]).length;
+  el.innerHTML=`<div class="shopHead"><h2>WEEKLY QUESTS</h2><div id="qTimer">RESET IN ${d}d ${h}h · ${done}/${QUESTS.length} COMPLETE</div></div><p class="frHint" style="margin:6px 0 14px">Complete quests in Battle Royale. Rewards are paid in Vex-Shards the moment you finish one. Quests refresh every Monday 00:00 UTC.</p><div id="qList" class="qList"></div><h3 style="margin:22px 0 8px;font-size:14px;letter-spacing:4px;color:#ffd23f">LANDMARKS DISCOVERED THIS WEEK  ${LANDMARKS.filter(l=>S.lm[l.name]).length}/${LANDMARKS.length}</h3><div class="bmLms" id="qLms"></div>`;
+  fillQuestRows($('qList'),QUESTS,false);
+  for(const lm of LANDMARKS){const s=document.createElement('span');s.textContent=lm.name;if(S.lm[lm.name])s.className='on';$('qLms').appendChild(s)}
+}
+addEventListener('pagehide',()=>{if(QDIRTY)persist()});
 
 let inLobby=true;
 tickDrops();
@@ -1697,7 +1902,7 @@ function placePiece(){
   const box=addCollider(pl.x0,pl.x1,pl.z0,pl.z1,pl.y0,pl.y1,{hp:130,piece:true,ramp:pl.type===2?{dx:pl.dx,dz:pl.dz}:null});
   if(pl.type===1){box.y0=pl.lvl}
   const piece={key:pl.key,mesh,box};box.owner=piece;pieces.push(piece);
-  sfx('build',.9);
+  sfx('build',.9);qEvent('build',1);
   // drop player onto a floor/ramp we are standing in? let physics handle it
 }
 function destroyPiece(piece){
@@ -1765,6 +1970,7 @@ function hurt(e,amt,src,head){
   if(MODE.id==='roam'&&src===P&&e!==P&&amt>0){if(e.civ){e.fleeT=10;bumpWanted(.12)}else if(e.cop)bumpWanted(.25)}
   if(e.shield>0){const s=Math.min(e.shield,amt);e.shield-=s;amt-=s}
   e.hp-=amt;
+  if(src===P&&e!==P&&e.isBot&&amt>0)qEvent('dmg',amt);
   if(e===P&&amt>0){$('dmg').style.opacity=clamp(amt/25,.25,1);setTimeout(()=>$('dmg').style.opacity=0,120)}
   if(src===P&&e!==P&&amt>0){const c=$('cross');c.classList.add('hit');setTimeout(()=>c.classList.remove('hit'),110);sfx('hit',.6)}
   if(e.hp<=0){e.hp=0;kill(e,src,head)}
@@ -1776,6 +1982,7 @@ function kill(e,src,head){
   addFeed(`${sn} ${head?'headshot':'eliminated'} ${e.name}`);
   if(src&&src!==e){src.kills=(src.kills||0)+1}
   modeOnKill(e,src);
+  if(MODE.id==='br'&&src===P&&e!==P&&e.isBot){qEvent('elim',1);if(head)qEvent('headshot',1);if(P.state==='car')qEvent('carkill',1);else if(P.weapon===2)qEvent('shotgun',1)}
   if(e.isBot){
     e.mesh.rotation.x=-Math.PI/2;e.mesh.position.y=.22;if(e.mesh.userData.tag)e.mesh.userData.tag.visible=false;
     if(MODE.id==='br'){const t=pick(['med','shield','ammo','mats']);spawnPickup(t,e.x,e.z)}
@@ -1791,6 +1998,7 @@ function kill(e,src,head){
 }
 function endGame(win){
   if(gameOver)return;gameOver=true;
+  if(win)qEvent('win',1);
   const place=win?1:aliveCount+1;
   const reward=P.kills*10+(win?50:0);   // 10 Vex-Shards per elimination, 50 for a win
   SAVE.vb+=reward;SAVE.stats.kills+=P.kills;if(win)SAVE.stats.wins++;persist();
@@ -1978,7 +2186,7 @@ function updatePlayer(dt){
   // pickups
   for(let i=pickups.length-1;i>=0;i--){const pk=pickups[i];
     if(Math.hypot(pk.x-P.x,pk.z-P.z)<1.6&&Math.abs(pk.y-P.y)<2.5){
-      PICKTYPES[pk.type].fn();toast(PICKTYPES[pk.type].txt,900);sfx('pickup',1);scene.remove(pk.mesh);pickups.splice(i,1);
+      PICKTYPES[pk.type].fn();toast(PICKTYPES[pk.type].txt,900);sfx('pickup',1);qEvent('pickup',1);scene.remove(pk.mesh);pickups.splice(i,1);
     }
   }
 }
@@ -2016,6 +2224,7 @@ function updateDrivePlayer(dt){
   const v=P.car;
   const thr=(keys.w?1:0)-(keys.s?1:0),st=(keys.a?1:0)-(keys.d?1:0);
   stepCar(v,dt,thr,st,keys.space);
+  qEvent('drive',Math.abs(v.speed)*dt);
   P.x=v.x;P.z=v.z;P.y=0;
   // run people over
   for(const b of bots){if(!b.alive)continue;
@@ -2227,8 +2436,9 @@ function drawMinimap(){
   g.fillStyle='#ffd23f';for(const v of vehicles){if(v.dead||v.ai)continue;const [vx,vz]=w2m(v.x,v.z);if(Math.hypot(vx-S/2,vz-S/2)<S/2)g.fillRect(vx-2,vz-2,4,4)}
   g.fillStyle='#ff5555';
   for(const pk of pickups){const [vx,vz]=w2m(pk.x,pk.z);if(Math.hypot(vx-S/2,vz-S/2)<S/2-4){g.fillStyle='#' + PICKTYPES[pk.type].col.toString(16).padStart(6,'0');g.fillRect(vx-1.5,vz-1.5,3,3)}}
-  // player arrow
-  g.translate(S/2,S/2);g.rotate(-P.camYaw+Math.PI);
+  minimapExtras(g,S,k,w2m);
+  // player arrow: faces the way the player is looking (camera yaw 0 = north = up the map)
+  g.translate(S/2,S/2);g.rotate(-heading());
   g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=1.5;g.beginPath();g.moveTo(0,-8);g.lineTo(6,7);g.lineTo(0,3);g.lineTo(-6,7);g.closePath();g.fill();g.stroke();
   g.restore();
 }
@@ -2280,6 +2490,8 @@ addEventListener('keydown',e=>{
     case'KeyZ':case'KeyX':case'KeyC':{if(P.state==='foot'&&P.onGround&&!P.build){const it=byId(SAVE.eq.emotes['ZXC'.indexOf(e.code[3])]);if(it)startEmote(it)}break}
     case'KeyQ':if(P.state==='foot'){P.build=!P.build;sfx('build',.4)}break;
     case'BracketLeft':case'BracketRight':P.sens=clamp(P.sens*(e.code==='BracketLeft'?.85:1.15),.3,3);toast('Sensitivity '+P.sens.toFixed(2),900);break;
+    case'KeyM':toggleMap();break;
+    case'Escape':if(mapOpen)closeMap();break;
     case'KeyH':$('hint').classList.toggle('hidden');break;
     case'Digit4':case'Digit5':case'Digit6':case'Digit7':case'Digit8':case'Digit9':{if(P.build&&MODE.id==='brick'){P.brickColor=+e.code.slice(5)-4;toast('Brick colour '+(P.brickColor+1),700)}break}
     case'Digit1':case'Digit2':case'Digit3':{const i=+e.code.slice(5)-1;if(P.build)P.bpiece=i;else setWeapon(i);break}
@@ -2287,10 +2499,10 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{if(keyMap[e.code])keys[keyMap[e.code]]=false});
 addEventListener('contextmenu',e=>e.preventDefault());
-addEventListener('mousedown',e=>{if(e.button===2)P.ads=true;if(e.button===0){mouseDown=true;if(running&&!paused&&!gameOver&&P.build&&(P.state==='foot')&&(document.pointerLockElement||window.__noLockOK))placePiece()}});
+addEventListener('mousedown',e=>{if(mapOpen)return;if(e.button===2)P.ads=true;if(e.button===0){mouseDown=true;if(running&&!paused&&!gameOver&&P.build&&(P.state==='foot')&&(document.pointerLockElement||window.__noLockOK))placePiece()}});
 addEventListener('mouseup',e=>{if(e.button===0)mouseDown=false;if(e.button===2)P.ads=false});
 addEventListener('mousemove',e=>{
-  if(!running||paused||gameOver)return;
+  if(!running||paused||gameOver||mapOpen)return;
   if(document.pointerLockElement!==canvas&&!window.__noLockOK)return;
   const s=.0023*P.sens*(1-.45*P.adsK);
   P.camYaw-=e.movementX*s;
@@ -2300,7 +2512,7 @@ addEventListener('mousemove',e=>{
 addEventListener('wheel',e=>{if(!running||P.build)return;setWeapon((P.weapon+(e.deltaY>0?1:2))%3)});
 document.addEventListener('pointerlockchange',()=>{
   if(!running||gameOver)return;
-  if(document.pointerLockElement!==canvas){paused=true;$('pause').classList.remove('hidden');keys.w=keys.a=keys.s=keys.d=keys.shift=keys.space=false;mouseDown=false;P.ads=false}
+  if(document.pointerLockElement!==canvas){if(mapOpen)return;paused=true;$('pause').classList.remove('hidden');keys.w=keys.a=keys.s=keys.d=keys.shift=keys.space=false;mouseDown=false;P.ads=false}
   else{paused=false;$('pause').classList.add('hidden')}
 });
 function lock(){
@@ -2315,6 +2527,7 @@ function makePlayerMesh(){
 function startMatch(seed,squad){
   P.name=SAVE.name;NET.active=!!squad;
   setupMode(squad?'br':(SAVE.mode||'br'));
+  QM.s3=false;if(MODE.id==='br')qEvent('matches',1);
   scene.remove(P.mesh);P.mesh=makePlayerMesh();scene.add(P.mesh);
   scene.remove(chute);chute=makeChute(byId(SAVE.eq.glider));chute.visible=MODE.id==='br';scene.add(chute);
   if(squad&&seed!==undefined){   // squad match: same storm for everyone, and the squad lands together
@@ -2356,7 +2569,7 @@ function frame(now){
     timeNow+=dt;
     if(!paused){
       if(P.alive||true){updatePlayer(dt)}
-      updateBots(dt);updateTraffic(dt);updateIdleCars(dt);updateStorm(dt);updateModes(dt);
+      updateBots(dt);updateTraffic(dt);updateIdleCars(dt);updateStorm(dt);updateModes(dt);updateQuests(dt);
       // pickups spin
       for(const pk of pickups){pk.ph+=dt*2;pk.mesh.rotation.y=pk.ph;pk.mesh.position.y=pk.y+1+Math.sin(pk.ph)*.2}
       for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.life-=dt;
@@ -2367,7 +2580,7 @@ function frame(now){
       chute.position.set(P.x,P.y,P.z);
       updateGhost();updateRemotes(dt);netMatchTick(dt);updateSquadHUD(dt);
       updateCamera(dt);
-      updateHUD(dt);
+      updateHUD(dt);mapTick(dt);
     }
   }else{
     // idle: slowly orbit above the city behind the menu
@@ -2379,7 +2592,7 @@ function frame(now){
 }
 init();
 requestAnimationFrame(frame);
-window.__game={pickups,MS:MST,TS:TSC,MODES,getMode:()=>MODE,setMode:id=>{SAVE.mode=id},bump:a=>bumpWanted(a),NET,genName,joinParty,createParty,end:w=>endGame(w),W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
+window.__game={qEvent,get QUESTS(){return QUESTS},LANDMARKS,heading,openMap,closeMap,toggleMap,get mapOpen(){return mapOpen},get WP(){return WP},pickups,MS:MST,TS:TSC,MODES,getMode:()=>MODE,setMode:id=>{SAVE.mode=id},bump:a=>bumpWanted(a),NET,genName,joinParty,createParty,end:w=>endGame(w),W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
 })();
 </script>
 </body>

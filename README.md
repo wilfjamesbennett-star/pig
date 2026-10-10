@@ -52,3 +52,9 @@ Rewards: 10 Vex-Shards per elimination, 50 for a win (team modes), 50 for findin
 Squads with friends are Battle Royale only.
 
 - 2026-10-10: Added Red vs Blue, Strike Force, Free Roam and Brick World modes.
+- 2026-10-10: Minimap arrow now points the way you face; **M** opens a full city map (grid, landmarks, storm, waypoints by clicking); weekly Battle Royale quests (tab + in-match tracker, paid in Vex-Shards).
+
+## Map and quests
+
+- **M**: big map. Click to set/clear a waypoint (shown on the minimap with distance). **M** or **Esc** closes it.
+- **Quests** tab: 6 weekly quests, new every Monday 00:00 UTC, progress counts in Battle Royale and rewards are paid as soon as a quest completes. Discover landmarks (parks, towers, plazas) for the landmark quest.
