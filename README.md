@@ -7,6 +7,10 @@ A 3D open-world mix of GTA and Fortnite that runs in the browser (Three.js, no b
 - **Fortnite**: 24 AI rivals, shrinking storm, loot pickups, and **build mode** (walls, floors, ramps)
 - Weapons: pistol, assault rifle, shotgun. Headshots do double damage. Shoot enemy builds to destroy them.
 
+## Website
+
+The game is a static site (`index.html` + `three.min.js`). Pushing to `main` deploys it to GitHub Pages via `.github/workflows/pages.yml`. One-time setup: repo **Settings → Pages → Source: GitHub Actions**. Then play at `https://<user>.github.io/pig/`.
+
 ## Run
 
     python3 -m http.server 8000   # then open http://localhost:8000
