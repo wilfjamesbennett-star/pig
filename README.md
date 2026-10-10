@@ -1,4 +1,4 @@
-# Storm City Royale
+# Outlaw Rush
 
 A 3D open-world mix of GTA and Fortnite that runs in the browser (Three.js, no build step).
 
