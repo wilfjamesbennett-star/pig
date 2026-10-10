@@ -155,7 +155,7 @@
   </div>
   <div id="hint">
     <b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>Mouse</b> aim/shoot · <b>Right-click</b> aim down sights · <b>[ ]</b> sensitivity · <b>R</b> reload · <b>1-3</b> weapon<br>
-    <b>F</b> enter/exit car · <b>Q</b> build mode · <b>Space</b> handbrake in car · <b>Z X C</b> emotes · <b>H</b> hide this
+    <b>F</b> enter/exit car · <b>Q</b> build mode · <b>Space</b> handbrake in car · <b>E</b> emote (cycles) · <b>Z X C</b> slots · <b>H</b> hide this
   </div>
   <div id="dmg"></div><div id="stormfx"></div>
 </div>
@@ -1742,6 +1742,7 @@ addEventListener('keydown',e=>{
   switch(e.code){
     case'KeyF':enterExitCar();break;
     case'KeyR':startReload();break;
+    case'KeyE':{const ids=SAVE.eq.emotes.filter(Boolean);if(ids.length&&P.state==='foot'&&P.onGround&&!P.build){const it=byId(ids[(P.emoteIdx=(P.emoteIdx||0)%ids.length)]);P.emoteIdx++;if(it)P.emote={name:it.anim,t:0}}break}
     case'KeyZ':case'KeyX':case'KeyC':{if(P.state==='foot'&&P.onGround&&!P.build){const it=byId(SAVE.eq.emotes['ZXC'.indexOf(e.code[3])]);if(it)P.emote={name:it.anim,t:0}}break}
     case'KeyQ':if(P.state==='foot'){P.build=!P.build;sfx('build',.4)}break;
     case'BracketLeft':case'BracketRight':P.sens=clamp(P.sens*(e.code==='BracketLeft'?.85:1.15),.3,3);toast('Sensitivity '+P.sens.toFixed(2),900);break;
