@@ -28,3 +28,12 @@ Click **PLAY** (mouse is captured; Esc pauses).
 
 ### Changelog
 - 2026-10-10: Anime cel-shaded skins, lobby / locker / rotating item shop, Vex-Shards currency, weekly drops.
+- 2026-10-10: Online play: names + name tags, random rival names, friends list (requests), parties, squad co-op (uses the artifact `room` capability).
+
+## Online play
+
+Open the shared artifact page (people need access via the Share menu). Everyone with the page open appears under **Friends → Players Online**.
+- **Add friend** sends a request; they accept it. Friends are saved in the browser.
+- **Invite** (creates a party if you are not in one). The invited player joins from Friends → Invites.
+- The party leader presses **PLAY SQUAD**; everyone drops together with the same storm and sees each other with name tags, emotes and gunfire.
+- Rival bots are simulated on each player's own machine, so bots are not shared between squad members.
