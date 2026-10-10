@@ -7,6 +7,10 @@ A 3D open-world mix of GTA and Fortnite that runs in the browser (Three.js, no b
 - **Fortnite**: 24 AI rivals, shrinking storm, loot pickups, and **build mode** (walls, floors, ramps)
 - Weapons: pistol, assault rifle, shotgun. Headshots do double damage. Shoot enemy builds to destroy them.
 
+## Website
+
+The game is a static site (`index.html` + `three.min.js`). Pushing to `main` deploys it to GitHub Pages via `.github/workflows/pages.yml`. One-time setup: repo **Settings → Pages → Source: GitHub Actions**. Then play at `https://<user>.github.io/pig/`.
+
 ## Run
 
     python3 -m http.server 8000   # then open http://localhost:8000
@@ -27,6 +31,7 @@ Click **PLAY** (mouse is captured; Esc pauses).
 - **Every Monday** a scheduled Claude session also adds one hand-made addition (new skin, emote, weapon, map piece…) and logs it below.
 
 ### Changelog
+- 2026-10-10: Everything on foot is now first-person in every mode.
 - 2026-10-10: Anime cel-shaded skins, lobby / locker / rotating item shop, Vex-Shards currency, weekly drops.
 - 2026-10-10: Online play: names + name tags, random rival names, friends list (requests), parties, squad co-op (uses the artifact `room` capability).
 
