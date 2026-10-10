@@ -40,7 +40,7 @@
   #veh{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);text-align:center;display:none;text-shadow:0 2px 6px #000}
   #kmh{font-size:48px;font-weight:800}
   #hint{position:absolute;left:16px;bottom:16px;font-size:12px;opacity:.85;text-shadow:0 1px 3px #000;line-height:1.55;background:rgba(0,0,0,.35);padding:8px 10px;border-radius:8px}
-  #toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:26px;font-weight:800;text-shadow:0 3px 10px #000;opacity:0;transition:opacity .3s;text-align:center;white-space:nowrap}
+  #toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:26px;font-weight:800;text-shadow:0 3px 10px #000;opacity:0;transition:opacity .3s;text-align:center;max-width:90vw;z-index:5}
   #prompt{position:absolute;left:50%;top:62%;transform:translateX(-50%);font-size:18px;font-weight:700;background:rgba(0,0,0,.6);padding:6px 14px;border-radius:8px;display:none}
   #dmg{position:absolute;inset:0;box-shadow:inset 0 0 160px 40px rgba(255,0,0,.8);opacity:0;transition:opacity .35s}
   #stormfx{position:absolute;inset:0;box-shadow:inset 0 0 200px 60px rgba(150,40,255,.55);opacity:0;transition:opacity .4s}
@@ -124,6 +124,8 @@
   .pager{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:16px;font-weight:800;letter-spacing:2px;font-size:12px}
   .lkMore{grid-column:1/-1;text-align:center;font-size:12px;letter-spacing:1px;opacity:.7;padding:6px}
   @media (max-width:760px){#dropBanner{font-size:11px;padding:6px 10px}}
+  @media (max-width:1100px){#tabs button{padding:10px 10px;font-size:15px;white-space:nowrap}#lbTop{gap:12px}}
+  #vb{flex:none}#tabs{min-width:0}
   @media (max-width:760px){#tabs button{padding:8px 7px;font-size:12px;letter-spacing:0}.logo{font-size:16px}#lbTop{gap:8px;padding:0 10px}#vb{font-size:14px;padding-right:10px}}
   /* friends / party / names */
   #frBody{flex:1;overflow:auto;padding-right:6px}
@@ -153,9 +155,9 @@
   @media (max-height:640px){.modeBtn span{display:none}.modeBtn{min-height:34px;padding:4px 10px}.modeBtn i{font-size:18px}#modeBox{top:168px;gap:4px}#modeTag{display:none}#lbPlay{font-size:30px;padding:6px 0}#lbPlayBox{bottom:20px}}
   /* big map + quests */
   #bigMapWrap{position:absolute;inset:0;background:rgba(4,6,26,.82);display:flex;align-items:center;justify-content:center;gap:18px;pointer-events:auto;z-index:4;padding:12px}
-  .bmBox{display:flex;flex-direction:column;gap:6px}
+  .bmBox{display:flex;flex-direction:column;gap:6px;width:min(80vh,64vw);min-width:0}
   .bmHead{display:flex;align-items:center;gap:14px;font-weight:800;letter-spacing:2px;text-shadow:0 2px 6px #000}
-  .bmHead b{font-size:20px;font-style:italic}#bmWhere{font-size:13px;color:#9fe2ff;flex:1}
+  .bmHead b{font-size:20px;font-style:italic}#bmWhere{font-size:13px;color:#9fe2ff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bmHead{min-width:0}
   #bmClose{background:#10143c;border:2px solid #3a4aa8;color:#fff;font:900 20px/1 Arial,sans-serif;width:36px;height:36px;cursor:pointer}
   #bigMap{width:min(80vh,64vw);height:min(80vh,64vw);border:3px solid #3a4aa8;cursor:crosshair;background:#222;box-shadow:0 12px 40px #000a}
   .bmFoot{font-size:12px;opacity:.8;letter-spacing:1px}
@@ -168,11 +170,11 @@
   .qBar{height:6px;background:#050720;margin-top:6px;overflow:hidden}.qBar i{display:block;height:100%;background:linear-gradient(90deg,#39e0ff,#7b5cff)}.qRow.done .qBar i{background:#3fe07a}
   .qNum{font-size:10px;letter-spacing:1.5px;opacity:.75;margin-top:3px}
   .qList{max-width:640px}
-  #quests{position:absolute;right:16px;top:44%;width:240px;display:none;font-size:12px;text-shadow:0 1px 3px #000}
+  #quests{position:absolute;right:16px;top:min(44%,calc(100% - 350px));width:240px;display:none;font-size:12px;text-shadow:0 1px 3px #000}
   #quests .qRow{padding:5px 8px;margin-bottom:4px;border-width:0;border-left:3px solid #7b5cff;background:#0a0c2acc}#quests .qRow.done{border-left-color:#3fe07a}
   #quests .qTop{font-size:12px}#quests .qBar{height:4px;margin-top:4px}#quests .qNum{display:none}
   #tabQuests{padding:14px 32px;background:linear-gradient(#0b0f33f2,#150b3af2);overflow:auto}
-  @media (max-width:900px){#bmQuests{display:none}#bigMap{width:min(86vh,92vw);height:min(86vh,92vw)}}
+  @media (max-width:900px){#bmQuests{display:none}.bmBox{width:min(86vh,92vw)}#bigMap{width:min(86vh,92vw);height:min(86vh,92vw)}}
 </style>
 </head>
 <body>
@@ -1205,6 +1207,7 @@ function refreshPlay(){
 function startFromLobby(){
   if(NET.party&&NET.partyRoom&&SAVE.mode==='br'){
     if(!NET.leader)return;
+    if(NET.starting)return;NET.starting=true;$('lbPlay').disabled=true;
     const seed=Math.floor(Math.random()*1e9);
     partyPush({go:{seed,seq:Date.now()}});lbToast('Squad dropping in…');
     setTimeout(()=>startMatch(seed,true),1200);
@@ -1310,7 +1313,7 @@ function netMatchTick(dt){
   const key=JSON.stringify(patch);if(key===NET.lastKey)return;NET.lastKey=key;
   partyPush(patch);
 }
-function startEmote(it){P.emote={name:it.anim,t:0};NET.em={n:it.anim,t:Date.now()};qEvent('emote',1)}
+function startEmote(it){const fresh=!P.emote;P.emote={name:it.anim,t:0};NET.em={n:it.anim,t:Date.now()};if(fresh)qEvent('emote',1)}
 let squadT=0;
 function updateSquadHUD(dt){
   squadT+=dt;if(squadT<.3)return;squadT=0;
@@ -1481,7 +1484,7 @@ function endTeamMatch(){
   endMode(win,w?(win?'VICTORY':'DEFEAT'):'DRAW',`${w?TEAMS[w].name+' TEAM WINS':'Time up'} · BLUE ${TSC.blue} – ${TSC.red} RED · ${P.kills} eliminations`,P.kills*10+(win?50:0));
 }
 function endMode(win,title,sub,reward){
-  if(gameOver)return;gameOver=true;
+  if(gameOver)return;gameOver=true;closeMap();
   SAVE.vb+=reward;SAVE.stats.kills+=P.kills;if(win)SAVE.stats.wins++;persist();
   document.exitPointerLock&&document.exitPointerLock();
   setTimeout(()=>{
@@ -1644,7 +1647,7 @@ function closeMap(){
 }
 const toggleMap=()=>mapOpen?closeMap():openMap();
 bigCv.addEventListener('click',e=>{
-  const r=bigCv.getBoundingClientRect(),mx=(e.clientX-r.left)/r.width*MAPN,mz=(e.clientY-r.top)/r.height*MAPN;
+  const r=bigCv.getBoundingClientRect(),mx=(e.clientX-r.left-bigCv.clientLeft)/bigCv.clientWidth*MAPN,mz=(e.clientY-r.top-bigCv.clientTop)/bigCv.clientHeight*MAPN;
   const x=mx/MAP_K-MAP_O,z=mz/MAP_K-MAP_O;
   if(WP&&Math.hypot(WP.x-x,WP.z-z)<14){WP=null;toast('Waypoint cleared',900)}else{WP={x:clamp(x,-HALF,HALF),z:clamp(z,-HALF,HALF)};toast('Waypoint set · '+gridName(WP.x,WP.z),1100)}
   drawBigMap();
@@ -1653,18 +1656,20 @@ $('bmClose').onclick=closeMap;
 function mapTick(dt){if(!mapOpen)return;mapTick.t=(mapTick.t||0)+dt;if(mapTick.t>.1){mapTick.t=0;drawBigMap();renderMapQuests()}}
 /** minimap overlays: waypoint, quest landmarks, north marker (called inside the clipped minimap context) */
 function minimapExtras(g,S,k,w2m){
+  g.fillStyle='#fff';g.font='bold 11px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.strokeStyle='#000';g.lineWidth=3;g.strokeText('N',S/2,10);g.fillText('N',S/2,10);
   if(MODE.id==='br'&&QUESTS.some(q=>q.k==='landmark'&&!SAVE.quests.done[q.id])){
     for(const lm of LANDMARKS){if(SAVE.quests.lm[lm.name])continue;const [x,z]=w2m(lm.x,lm.z);if(Math.hypot(x-S/2,z-S/2)>S/2-6)continue;
       g.fillStyle='#ffd23f';g.strokeStyle='#000';g.lineWidth=1;g.beginPath();g.moveTo(x,z-5);g.lineTo(x+4,z);g.lineTo(x,z+5);g.lineTo(x-4,z);g.closePath();g.fill();g.stroke()}
   }
   if(WP){
-    let [x,z]=w2m(WP.x,WP.z);const dx=x-S/2,dz=z-S/2,d=Math.hypot(dx,dz),lim=S/2-9;
+    let [x,z]=w2m(WP.x,WP.z);const dx=x-S/2,dz=z-S/2,d=Math.hypot(dx,dz)||1,lim=S/2-9;
     if(d>lim){x=S/2+dx/d*lim;z=S/2+dz/d*lim}
     g.fillStyle='#ff3bd4';g.strokeStyle='#fff';g.lineWidth=1.5;g.beginPath();g.moveTo(x,z-8);g.lineTo(x+6,z);g.lineTo(x,z+8);g.lineTo(x-6,z);g.closePath();g.fill();g.stroke();
+    // distance label sits just inside the marker, along the line to the centre, so it never covers the marker itself
+    const lx=x+(S/2-x)/Math.max(1,Math.hypot(S/2-x,S/2-z))*20,lz=z+(S/2-z)/Math.max(1,Math.hypot(S/2-x,S/2-z))*20;
     g.fillStyle='#fff';g.font='bold 10px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.strokeStyle='#000';g.lineWidth=3;
-    const t=Math.round(Math.hypot(WP.x-P.x,WP.z-P.z))+'m';g.strokeText(t,S/2,S-8);g.fillText(t,S/2,S-8);
+    const t=Math.round(Math.hypot(WP.x-P.x,WP.z-P.z))+'m';g.strokeText(t,lx,lz);g.fillText(t,lx,lz);
   }
-  g.fillStyle='#fff';g.font='bold 11px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.strokeStyle='#000';g.lineWidth=3;g.strokeText('N',S/2,10);g.fillText('N',S/2,10);
 }
 
 /* ---- weekly quests (Battle Royale) ---- */
@@ -1697,12 +1702,13 @@ function ensureQuestWeek(){
 }
 ensureQuestWeek();
 const QM={s3:false};
+let runOver=false;   // true only while a direct run-over hit is being applied
 function qEvent(k,n=1){
   if(MODE.id!=='br')return;ensureQuestWeek();const S=SAVE.quests;
   for(const q of QUESTS){
     if(q.k!==k||S.done[q.id])continue;
     S.prog[q.id]=Math.min(q.n,(S.prog[q.id]||0)+n);QDIRTY=true;
-    if(S.prog[q.id]>=q.n){S.done[q.id]=1;SAVE.vb+=q.rw;persist();QDIRTY=false;refreshVB();toast(`QUEST COMPLETE  ·  ${q.txt}  ·  +${q.rw} Vex-Shards`,3800);sfx('pickup',1)}
+    if(S.prog[q.id]>=q.n){S.done[q.id]=1;SAVE.vb+=q.rw;persist();QDIRTY=false;refreshVB();toast(`QUEST COMPLETE  ·  ${q.txt}  ·  +${q.rw} Vex-Shards`,3800,true);sfx('pickup',1)}
   }
 }
 let qSaveT=0,qLmT=0,qHudT=0;
@@ -1960,7 +1966,9 @@ function explosion(x,z,radius=9,dmg=70,src=null){
 /* ============================ DAMAGE / KILLS ============================ */
 const feed=[];
 function addFeed(t){feed.push({t,at:timeNow});if(feed.length>5)feed.shift()}
-function toast(t,ms=2200){const el=$('toast');el.textContent=t;el.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.opacity=0,ms)}
+function toast(t,ms=2200,priority){
+  if(priority)toast.hold=performance.now()+ms;else if(performance.now()<(toast.hold||0))return;   // a quest-complete banner is not replaced by a routine toast
+  const el=$('toast');el.textContent=t;el.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.opacity=0,ms)}
 function hurt(e,amt,src,head){
   if(!e.alive||gameOver&&e===P)return;
   if(MODE.god&&e===P)return;
@@ -1968,9 +1976,10 @@ function hurt(e,amt,src,head){
   if(src&&src.strike&&e===src.owner)return;
   if(src&&src!==e&&src.team&&e.team&&src.team===e.team)return;   // no friendly fire
   if(MODE.id==='roam'&&src===P&&e!==P&&amt>0){if(e.civ){e.fleeT=10;bumpWanted(.12)}else if(e.cop)bumpWanted(.25)}
+  const dealt=Math.min(amt,(e.shield||0)+e.hp);   // real damage: no overkill, shield damage counts
   if(e.shield>0){const s=Math.min(e.shield,amt);e.shield-=s;amt-=s}
   e.hp-=amt;
-  if(src===P&&e!==P&&e.isBot&&amt>0)qEvent('dmg',amt);
+  if(src===P&&e!==P&&e.isBot&&dealt>0)qEvent('dmg',dealt);
   if(e===P&&amt>0){$('dmg').style.opacity=clamp(amt/25,.25,1);setTimeout(()=>$('dmg').style.opacity=0,120)}
   if(src===P&&e!==P&&amt>0){const c=$('cross');c.classList.add('hit');setTimeout(()=>c.classList.remove('hit'),110);sfx('hit',.6)}
   if(e.hp<=0){e.hp=0;kill(e,src,head)}
@@ -1982,7 +1991,7 @@ function kill(e,src,head){
   addFeed(`${sn} ${head?'headshot':'eliminated'} ${e.name}`);
   if(src&&src!==e){src.kills=(src.kills||0)+1}
   modeOnKill(e,src);
-  if(MODE.id==='br'&&src===P&&e!==P&&e.isBot){qEvent('elim',1);if(head)qEvent('headshot',1);if(P.state==='car')qEvent('carkill',1);else if(P.weapon===2)qEvent('shotgun',1)}
+  if(MODE.id==='br'&&src===P&&e!==P&&e.isBot){qEvent('elim',1);if(head)qEvent('headshot',1);if(runOver)qEvent('carkill',1);else if(P.weapon===2&&P.state!=='car')qEvent('shotgun',1)}
   if(e.isBot){
     e.mesh.rotation.x=-Math.PI/2;e.mesh.position.y=.22;if(e.mesh.userData.tag)e.mesh.userData.tag.visible=false;
     if(MODE.id==='br'){const t=pick(['med','shield','ammo','mats']);spawnPickup(t,e.x,e.z)}
@@ -1997,7 +2006,7 @@ function kill(e,src,head){
   if(MODE.id==='br'&&!gameOver&&P.alive&&aliveCount<=1){endGame(true)}
 }
 function endGame(win){
-  if(gameOver)return;gameOver=true;
+  if(gameOver)return;gameOver=true;closeMap();
   if(win)qEvent('win',1);
   const place=win?1:aliveCount+1;
   const reward=P.kills*10+(win?50:0);   // 10 Vex-Shards per elimination, 50 for a win
@@ -2223,13 +2232,14 @@ function stepCar(v,dt,thr,steerIn,brake){
 function updateDrivePlayer(dt){
   const v=P.car;
   const thr=(keys.w?1:0)-(keys.s?1:0),st=(keys.a?1:0)-(keys.d?1:0);
+  const dx0=v.x,dz0=v.z;
   stepCar(v,dt,thr,st,keys.space);
-  qEvent('drive',Math.abs(v.speed)*dt);
+  qEvent('drive',Math.hypot(v.x-dx0,v.z-dz0));
   P.x=v.x;P.z=v.z;P.y=0;
   // run people over
   for(const b of bots){if(!b.alive)continue;
     const d=Math.hypot(b.x-v.x,b.z-v.z);
-    if(d<2.2&&Math.abs(v.speed)>6){hurt(b,Math.abs(v.speed)*4,P);burst(b.x,1,b.z,0xcc2222,8,6);v.speed*=.92;sfx('crash',.6)}}
+    if(d<2.2&&Math.abs(v.speed)>6){runOver=true;hurt(b,Math.abs(v.speed)*4,P);runOver=false;burst(b.x,1,b.z,0xcc2222,8,6);v.speed*=.92;sfx('crash',.6)}}
   // ram traffic
   for(const o of vehicles){if(o===v||o.dead)continue;const d=Math.hypot(o.x-v.x,o.z-v.z);
     if(d<3.4){const nx=(o.x-v.x)/(d||1),nz=(o.z-v.z)/(d||1);o.x+=nx*(3.4-d)*.6;o.z+=nz*(3.4-d)*.6;v.x-=nx*(3.4-d)*.4;v.z-=nz*(3.4-d)*.4;
@@ -2483,6 +2493,7 @@ const keyMap={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',ShiftLeft:'shift',ShiftRight:'
 addEventListener('keydown',e=>{
   if(keyMap[e.code]){keys[keyMap[e.code]]=true;if(e.code==='Space')e.preventDefault()}
   if(!running||paused||gameOver)return;
+  if(e.repeat&&e.code!=='BracketLeft'&&e.code!=='BracketRight')return;   // holding a key must not re-trigger actions
   switch(e.code){
     case'KeyF':enterExitCar();break;
     case'KeyR':startReload();break;
@@ -2509,7 +2520,7 @@ addEventListener('mousemove',e=>{
   P.camPitch=clamp(P.camPitch+e.movementY*s,-.55,1.25);
   P.lastMouse=timeNow;
 });
-addEventListener('wheel',e=>{if(!running||P.build)return;setWeapon((P.weapon+(e.deltaY>0?1:2))%3)});
+addEventListener('wheel',e=>{if(!running||paused||gameOver||mapOpen||P.build)return;setWeapon((P.weapon+(e.deltaY>0?1:2))%3)});
 document.addEventListener('pointerlockchange',()=>{
   if(!running||gameOver)return;
   if(document.pointerLockElement!==canvas){if(mapOpen)return;paused=true;$('pause').classList.remove('hidden');keys.w=keys.a=keys.s=keys.d=keys.shift=keys.space=false;mouseDown=false;P.ads=false}
@@ -2525,6 +2536,7 @@ function makePlayerMesh(){
   setTag(m,SAVE.name,P.team?TEAMS[P.team].css:'#ffd23f',.7);return m;
 }
 function startMatch(seed,squad){
+  if(!inLobby)return;
   P.name=SAVE.name;NET.active=!!squad;
   setupMode(squad?'br':(SAVE.mode||'br'));
   QM.s3=false;if(MODE.id==='br')qEvent('matches',1);
