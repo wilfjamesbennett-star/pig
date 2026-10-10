@@ -225,7 +225,7 @@ roadGround.rotation.x=-Math.PI/2;roadGround.receiveShadow=true;scene.add(roadGro
 /* ---- city generation ---- */
 const gWalls=FACADES.map(()=>mkG()), gRoof=mkG(), gWalk=mkG(), gGrass=mkG(), gMark=mkG(), gMarkY=mkG();
 const parks=[], bldgRects=[];
-const treeSpots=[], lampSpots=[], acSpots=[];
+const treeSpots=[], lampSpots=[], tankSpots=[];
 for(let i=0;i<10;i++)for(let j=0;j<10;j++){
   const cx=(i-4.5)*PITCH, cz=(j-4.5)*PITCH, h=BLOCK/2;
   const dist=Math.hypot(cx,cz), fall=clamp(1-dist/420,.15,1);
@@ -258,6 +258,7 @@ for(let i=0;i<10;i++)for(let j=0;j<10;j++){
       const k=rint(1,3);
       for(let q=0;q<k;q++){const ax=rnd(L[0]+2,L[1]-4),az=rnd(L[2]+2,L[3]-4),w=rnd(1.5,3.5),d=rnd(1.5,3.5),hh=rnd(.8,2.2);
         solidBox(gWalk,ax,bh,az,ax+w,bh+hh,az+d)}
+      if(rand()<.35)tankSpots.push([(L[0]+L[1])/2+rnd(-3,3),bh,(L[2]+L[3])/2+rnd(-3,3)]);
     }
   }
   // lamps on the corners of the sidewalk
@@ -293,8 +294,8 @@ const mk2=toMesh(gMarkY,new T.MeshStandardMaterial({color:0xe6b422,roughness:.8,
 /* ---- trees and lamps (instanced) ---- */
 {
   const n=treeSpots.length;
-  const trunk=new T.InstancedMesh(new T.CylinderGeometry(.22,.32,3,6),new T.MeshStandardMaterial({color:0x5a3f28,roughness:1}),n);
-  const crown=new T.InstancedMesh(new T.IcosahedronGeometry(2.3,1),new T.MeshStandardMaterial({color:0xffffff,roughness:.9,flatShading:true}),n);
+  const trunk=new T.InstancedMesh(new T.CylinderGeometry(.2,.34,3,14),new T.MeshStandardMaterial({color:0x5a3f28,roughness:1}),n);
+  const crown=new T.InstancedMesh(new T.IcosahedronGeometry(2.1,3),new T.MeshStandardMaterial({color:0xffffff,roughness:.9}),n);
   const m=new T.Matrix4(),col=new T.Color();
   treeSpots.forEach(([x,z],k)=>{
     const s=rnd(.8,1.35);
@@ -303,10 +304,17 @@ const mk2=toMesh(gMarkY,new T.MeshStandardMaterial({color:0xe6b422,roughness:.8,
     crown.setColorAt(k,col.setHSL(rnd(.22,.33),rnd(.45,.65),rnd(.2,.32)));
     addCollider(x-.4,x+.4,z-.4,z+.4,0,4,{tree:true});
   });
-  trunk.castShadow=crown.castShadow=true;trunk.receiveShadow=crown.receiveShadow=true;
-  scene.add(trunk,crown);
+  const crown2=new T.InstancedMesh(new T.IcosahedronGeometry(1.5,3),crown.material,n);
+  treeSpots.forEach(([x,z],k)=>{const s=rnd(.8,1.3);m.compose(new V3(x+rnd(-1,1),4.8*s,z+rnd(-1,1)),new T.Quaternion(),new V3(s,s*.9,s));crown2.setMatrixAt(k,m);crown2.setColorAt(k,col.setHSL(rnd(.22,.33),rnd(.5,.7),rnd(.24,.36)))});
+  trunk.castShadow=crown.castShadow=crown2.castShadow=true;trunk.receiveShadow=crown.receiveShadow=true;
+  scene.add(trunk,crown,crown2);
+  const tk=new T.InstancedMesh(new T.CylinderGeometry(1.5,1.5,2.6,24),new T.MeshStandardMaterial({color:0x7b5a3c,roughness:.8}),tankSpots.length||1);
+  const lid=new T.InstancedMesh(new T.ConeGeometry(1.6,.8,24),new T.MeshStandardMaterial({color:0x444448,roughness:.7}),tankSpots.length||1);
+  tankSpots.forEach(([x,y,z],k)=>{m.compose(new V3(x,y+2.3,z),new T.Quaternion(),new V3(1,1,1));tk.setMatrixAt(k,m);m.compose(new V3(x,y+4,z),new T.Quaternion(),new V3(1,1,1));lid.setMatrixAt(k,m);
+    for(const [lx,lz] of[[-1,-1],[1,-1],[-1,1],[1,1]])addCollider(x+lx*1.1-.05,x+lx*1.1+.05,z+lz*1.1-.05,z+lz*1.1+.05,y,y+1.4)});
+  tk.castShadow=lid.castShadow=true;scene.add(tk,lid);
   const L=lampSpots.length;
-  const pole=new T.InstancedMesh(new T.CylinderGeometry(.08,.1,6,6),new T.MeshStandardMaterial({color:0x2a2d33,roughness:.6,metalness:.5}),L);
+  const pole=new T.InstancedMesh(new T.CylinderGeometry(.07,.1,6,14),new T.MeshStandardMaterial({color:0x2a2d33,roughness:.6,metalness:.5}),L);
   const head=new T.InstancedMesh(new T.BoxGeometry(.9,.15,.35),new T.MeshStandardMaterial({color:0xfff4cf,emissive:0xffe8a0,emissiveIntensity:.6}),L);
   lampSpots.forEach(([x,z],k)=>{
     m.compose(new V3(x,3.1,z),new T.Quaternion(),new V3(1,1,1));pole.setMatrixAt(k,m);
@@ -415,18 +423,30 @@ const distVol=(x,z)=>clamp(1-Math.hypot(x-P.x,z-P.z)/140,0,1);
 
 /* ============================ MODELS ============================ */
 const matCache={};const stdMat=(c,r=.8,m=0)=>{const k=c+'|'+r+'|'+m;return matCache[k]||(matCache[k]=new T.MeshStandardMaterial({color:c,roughness:r,metalness:m}))};
-const G={torso:new T.BoxGeometry(.5,.66,.28),head:new T.SphereGeometry(.17,14,12),arm:new T.BoxGeometry(.14,.6,.14),leg:new T.BoxGeometry(.18,.8,.18),
-  gun:new T.BoxGeometry(.07,.11,.62),hair:new T.BoxGeometry(.3,.1,.3),pack:new T.BoxGeometry(.38,.45,.16)};
+const lathePts=[[0,0],[.19,0],[.22,.1],[.2,.3],[.23,.5],[.27,.62],[.25,.72],[.13,.79],[0,.81]].map(p=>new T.Vector2(p[0],p[1]));
+const G={torso:new T.LatheGeometry(lathePts,22),head:new T.SphereGeometry(.17,24,18),neck:new T.CylinderGeometry(.06,.07,.12,12),
+  upper:new T.CylinderGeometry(.068,.058,.5,14),joint:new T.SphereGeometry(.075,14,10),hand:new T.SphereGeometry(.058,12,10),
+  thigh:new T.CylinderGeometry(.105,.075,.8,16),shoe:new T.SphereGeometry(.1,14,10),
+  gunBody:new T.CylinderGeometry(.03,.03,.55,10),gunGrip:new T.BoxGeometry(.05,.14,.07),
+  hair:new T.SphereGeometry(.18,20,12,0,Math.PI*2,0,Math.PI*.55),pack:new T.SphereGeometry(.2,16,12)};
+G.torso.scale(1,1,.62);G.shoe.scale(1,.6,1.6);G.pack.scale(1,1.15,.55);G.gunBody.rotateX(Math.PI/2);
 function makeHuman(shirt,pants,skin,hair,pack=true){
   const g=new T.Group(),add=(geo,mat,x,y,z,parent=g)=>{const m=new T.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m};
-  add(G.torso,stdMat(shirt),0,1.15,0);
-  add(G.head,stdMat(skin),0,1.64,0);
-  add(G.hair,stdMat(hair),0,1.77,-.01);
-  if(pack)add(G.pack,stdMat(0x2b2f3a),0,1.18,-.2);
-  const mkLimb=(geo,mat,x,y,ox,oy)=>{const p=new T.Group();p.position.set(x,y,0);g.add(p);add(geo,mat,0,oy,0,p);return p};
-  const armL=mkLimb(G.arm,stdMat(shirt),-.34,1.45,0,-.28),armR=mkLimb(G.arm,stdMat(shirt),.34,1.45,0,-.28);
-  const legL=mkLimb(G.leg,stdMat(pants),-.13,.82,0,-.4),legR=mkLimb(G.leg,stdMat(pants),.13,.82,0,-.4);
-  const gun=add(G.gun,stdMat(0x1c1c20,.4,.6),0,-.5,.3,armR);
+  const sk=stdMat(skin,.6),sh=stdMat(shirt,.75),pn=stdMat(pants,.8);
+  add(G.torso,sh,0,.84,0);
+  add(G.neck,sk,0,1.66,0);
+  const head=add(G.head,sk,0,1.8,0);head.scale.set(.92,1.08,1);
+  const h=add(G.hair,stdMat(hair,.9),0,1.82,-.015);h.rotation.x=-.25;
+  for(const x of[-.065,.065]){add(new T.SphereGeometry(.02,8,6),stdMat(0x111111,.3),x,1.82,.155)}
+  if(pack)add(G.pack,stdMat(0x2b2f3a,.9),0,1.3,-.2);
+  const mkLimb=(x,y,mat,len)=>{const p=new T.Group();p.position.set(x,y,0);g.add(p);add(G.joint,mat,0,0,0,p);add(G.upper,mat,0,-len/2,0,p);return p};
+  const armL=mkLimb(-.33,1.5,sh,.5),armR=mkLimb(.33,1.5,sh,.5);
+  for(const a of[armL,armR])add(G.hand,sk,0,-.54,0,a);
+  const legL=mkLimb(-.12,.86,pn,.8),legR=mkLimb(.12,.86,pn,.8);
+  for(const l of[legL,legR]){add(G.thigh,pn,0,-.4,0,l).scale.set(1,1,1);add(G.shoe,stdMat(0x1a1a1d,.5),0,-.82,.05,l)}
+  const gun=new T.Group();gun.position.set(0,-.55,.28);armR.add(gun);
+  add(G.gunBody,stdMat(0x1c1c20,.35,.7),0,0,0,gun);add(G.gunGrip,stdMat(0x2a2a2e,.6),0,-.1,-.12,gun);
+  gun.children.forEach(c=>c.castShadow=true);
   g.userData={armL,armR,legL,legR,gun};
   return g;
 }
@@ -438,22 +458,40 @@ function animateHuman(e,dt,speed,aiming){
   u.gun.visible=aiming||true;
 }
 const carCols=[0xc0392b,0x2c6bd8,0xf1c40f,0x1e1e22,0xecf0f1,0x27ae60,0x8e44ad,0xe67e22,0x7f8c8d];
-const CG={body:new T.BoxGeometry(1.9,.55,4.3),cab:new T.BoxGeometry(1.64,.55,2.2),wheel:new T.CylinderGeometry(.38,.38,.26,16),lamp:new T.BoxGeometry(.4,.18,.06),bump:new T.BoxGeometry(1.95,.2,.2)};
-CG.wheel.rotateZ(Math.PI/2);
+function extrudeProfile(shape,width,bevel){
+  const g=new T.ExtrudeGeometry(shape,{depth:width,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:4,curveSegments:20});
+  g.translate(0,0,-width/2);g.rotateY(-Math.PI/2);g.computeVertexNormals();return g;
+}
+const CG={};
+{
+  const b=new T.Shape();
+  b.moveTo(-2.1,.42);b.lineTo(2.0,.42);b.bezierCurveTo(2.25,.42,2.3,.62,2.15,.78);b.lineTo(1.3,.92);b.bezierCurveTo(.6,.96,.2,.98,-.2,.98);
+  b.lineTo(-1.6,.98);b.bezierCurveTo(-2.05,.96,-2.3,.85,-2.25,.62);b.bezierCurveTo(-2.22,.5,-2.2,.42,-2.1,.42);
+  CG.body=extrudeProfile(b,1.62,.1);
+  const c=new T.Shape();
+  c.moveTo(-1.45,.95);c.lineTo(1.05,.95);c.bezierCurveTo(.9,1.15,.65,1.38,.4,1.42);c.lineTo(-.85,1.44);c.bezierCurveTo(-1.2,1.42,-1.4,1.2,-1.45,.95);
+  CG.cab=extrudeProfile(c,1.36,.07);
+  const r=new T.Shape();r.moveTo(-.9,1.4);r.lineTo(.4,1.4);r.lineTo(.4,1.47);r.lineTo(-.9,1.47);r.lineTo(-.9,1.4);
+  CG.roof=extrudeProfile(r,1.36,.07);
+}
+CG.tire=new T.CylinderGeometry(.38,.38,.28,28);CG.tire.rotateZ(Math.PI/2);
+CG.rim=new T.CylinderGeometry(.25,.25,.3,20);CG.rim.rotateZ(Math.PI/2);
+CG.lamp=new T.SphereGeometry(.14,14,10);CG.lamp.scale(1.5,.8,.6);
+CG.grille=new T.BoxGeometry(1.0,.14,.05);
 function makeCar(color){
   const g=new T.Group();
-  const paint=new T.MeshStandardMaterial({color,roughness:.28,metalness:.55});
-  const glass=new T.MeshStandardMaterial({color:0x10202c,roughness:.1,metalness:.8});
+  const paint=new T.MeshStandardMaterial({color,roughness:.3,metalness:.45});
+  const glass=new T.MeshStandardMaterial({color:0x0e1a24,roughness:.12,metalness:.6});
   const add=(geo,mat,x,y,z)=>{const m=new T.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m};
-  add(CG.body,paint,0,.62,0);
-  add(CG.cab,glass,0,1.12,-.25);
-  const roof=add(new T.BoxGeometry(1.6,.07,1.9),paint,0,1.42,-.25);
-  add(CG.bump,stdMat(0x222222,.5,.4),0,.42,2.15);add(CG.bump,stdMat(0x222222,.5,.4),0,.42,-2.15);
-  const rub=stdMat(0x111111,.9);
-  for(const x of[-.95,.95])for(const z of[-1.35,1.35])add(CG.wheel,rub,x,.38,z);
+  add(CG.body,paint,0,0,0);
+  add(CG.cab,glass,0,0,0);
+  add(CG.roof,paint,0,0,0);
+  const rub=stdMat(0x111111,.9),alloy=stdMat(0xb9bec6,.25,.9);
+  for(const x of[-.86,.86])for(const z of[-1.4,1.4]){add(CG.tire,rub,x,.38,z);add(CG.rim,alloy,x+(x>0?.02:-.02),.38,z)}
   const hl=new T.MeshStandardMaterial({color:0xfff6c8,emissive:0xfff0b0,emissiveIntensity:1.4});
   const tl=new T.MeshStandardMaterial({color:0x880000,emissive:0xff1010,emissiveIntensity:.9});
-  add(CG.lamp,hl,-.62,.7,2.16);add(CG.lamp,hl,.62,.7,2.16);add(CG.lamp,tl,-.62,.7,-2.16);add(CG.lamp,tl,.62,.7,-2.16);
+  add(CG.lamp,hl,-.6,.74,2.2);add(CG.lamp,hl,.6,.74,2.2);add(CG.lamp,tl,-.6,.78,-2.26);add(CG.lamp,tl,.6,.78,-2.26);
+  add(CG.grille,stdMat(0x1a1a1a,.5,.6),0,.58,2.3);
   g.userData.paint=paint;
   return g;
 }
@@ -510,7 +548,7 @@ const PICKTYPES={
   ammo:{col:0xffd23f,txt:'+Ammo',fn:()=>{WEAPONS[0].res+=24;WEAPONS[1].res+=60;WEAPONS[2].res+=10}},
   mats:{col:0xb58a52,txt:'+100 Materials',fn:()=>{P.mats+=100}},
 };
-const pkGeo=new T.OctahedronGeometry(.45);
+const pkGeo=new T.IcosahedronGeometry(.42,2);
 function spawnPickup(type,x,z){
   const def=PICKTYPES[type];
   const m=new T.Mesh(pkGeo,new T.MeshStandardMaterial({color:def.col,emissive:def.col,emissiveIntensity:.8,roughness:.3}));
