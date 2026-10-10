@@ -63,7 +63,7 @@
   #tabs button{background:none;border:0;color:#cfd6ff;font-weight:800;font-size:17px;letter-spacing:1.5px;padding:10px 22px;border-bottom:4px solid transparent;font-style:italic}
   #tabs button.on{color:#fff;border-color:#ffd23f}#tabs button:hover{color:#fff}
   #vb{display:flex;align-items:center;gap:8px;background:#10143c;border:2px solid #3a4aa8;border-radius:30px;padding:5px 16px 5px 6px;font-weight:800;font-size:18px}
-  #vb i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(#8fd0ff,#3f7fe0);font-style:normal;font-weight:900;font-size:15px}
+  #vb i,.price i,.shard{display:inline-block;width:28px;height:28px;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Cdefs%3E%3ClinearGradient id=%22r%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%232ee6a6%22/%3E%3Cstop offset=%22.3%22 stop-color=%22%2319c8ff%22/%3E%3Cstop offset=%22.65%22 stop-color=%22%237b5cff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23d44cff%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22c%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%2322e0ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23b04cff%22/%3E%3C/linearGradient%3E%3CradialGradient id=%22f%22 cx=%22.35%22 cy=%22.3%22 r=%22.9%22%3E%3Cstop offset=%220%22 stop-color=%22%234a4e56%22/%3E%3Cstop offset=%221%22 stop-color=%22%2316181c%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%230e0f12%22/%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22url%28%23f%29%22/%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22none%22 stroke=%22url%28%23r%29%22 stroke-width=%225%22/%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2235%22 fill=%22%231b1d22%22/%3E%3Cg transform=%22translate%2850 50%29%22 fill=%22url%28%23c%29%22%3E%3Cpath transform=%22rotate%280%29%22 d=%22M-7%2C-33 L9%2C-23 L9%2C-11 L-7%2C-21 Z M-7%2C-19 L6%2C-11 L6%2C-1 L-7%2C-9 Z%22/%3E%3Cpath transform=%22rotate%2872%29%22 d=%22M-7%2C-33 L9%2C-23 L9%2C-11 L-7%2C-21 Z M-7%2C-19 L6%2C-11 L6%2C-1 L-7%2C-9 Z%22/%3E%3Cpath transform=%22rotate%28144%29%22 d=%22M-7%2C-33 L9%2C-23 L9%2C-11 L-7%2C-21 Z M-7%2C-19 L6%2C-11 L6%2C-1 L-7%2C-9 Z%22/%3E%3Cpath transform=%22rotate%28216%29%22 d=%22M-7%2C-33 L9%2C-23 L9%2C-11 L-7%2C-21 Z M-7%2C-19 L6%2C-11 L6%2C-1 L-7%2C-9 Z%22/%3E%3Cpath transform=%22rotate%28288%29%22 d=%22M-7%2C-33 L9%2C-23 L9%2C-11 L-7%2C-21 Z M-7%2C-19 L6%2C-11 L6%2C-1 L-7%2C-9 Z%22/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;font-size:0;flex:none}
   .tab{position:absolute;inset:64px 0 0 0}
   #nameTag{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);text-align:center;margin-left:-14%}
   #nameTag b{display:block;font-size:22px;font-style:italic;letter-spacing:1px}#nameTag span{font-size:13px;opacity:.85;letter-spacing:2px;text-transform:uppercase}
@@ -97,7 +97,7 @@
   .card.eq{outline:3px solid #fff}.card.eq::after{content:"EQUIPPED";position:absolute;left:0;top:8px;background:#fff;color:#111;font-size:10px;font-weight:900;padding:2px 8px;text-shadow:none;letter-spacing:1px}
   .card.locked img{filter:grayscale(.85) brightness(.55)}
   .card .price{position:absolute;right:0;top:8px;background:#0a0c2add;padding:3px 9px 3px 7px;font-weight:900;font-size:13px;display:flex;gap:5px;align-items:center}
-  .price i{display:grid;place-items:center;width:15px;height:15px;border-radius:50%;background:linear-gradient(#8fd0ff,#3f7fe0);font-style:normal;font-size:9px}
+  .price i{width:18px;height:18px}
   .card .own{position:absolute;right:0;top:8px;background:#2ecc71;color:#06260f;padding:2px 8px;font-weight:900;font-size:10px;letter-spacing:1px;text-shadow:none}
   /* shop */
   #tabShop{padding:14px 32px;background:linear-gradient(#0b0f33f2,#150b3af2);overflow:auto}
@@ -157,7 +157,7 @@
   <header id="lbTop">
     <div class="logo">OUTLAW<span>RUSH</span></div>
     <nav id="tabs"><button data-tab="lobby" class="on">LOBBY</button><button data-tab="locker">LOCKER</button><button data-tab="shop">ITEM SHOP</button></nav>
-    <div id="vb" title="V-Bucks"><i>V</i><b id="vbn">0</b></div>
+    <div id="vb" title="Vex-Shards"><i></i><b id="vbn">0</b></div>
   </header>
 
   <section id="tabLobby" class="tab">
@@ -165,7 +165,7 @@
     <div id="lbHint">Click your character to emote · Z X C in match</div>
     <div id="lbStats"><div><b id="stM">0</b>MATCHES</div><div><b id="stW">0</b>WINS</div><div><b id="stK">0</b>ELIMS</div></div>
     <div id="lbPlayBox">
-      <button id="claim" class="ghost">Claim daily 250 V</button>
+      <button id="claim" class="ghost">Claim daily 250 Shards</button>
       <div class="mode">SOLO · BATTLE ROYALE · 25 PLAYERS</div>
       <button id="lbPlay">PLAY</button>
     </div>
@@ -754,11 +754,11 @@ function cardEl(item,opts={}){
   d.style.setProperty('--rc',RAR[item.rarity]);
   d.innerHTML=`<img alt="" src="${thumbOf(item)}"><div class="cn"></div><div class="ct">${item.rarity} ${TYPE_NAME[item.type]}</div>`;
   d.querySelector('.cn').textContent=item.name;
-  if(opts.price!==undefined){d.insertAdjacentHTML('beforeend',SAVE.owned[item.id]?'<div class="own">OWNED</div>':`<div class="price"><i>V</i>${item.price}</div>`)}
+  if(opts.price!==undefined){d.insertAdjacentHTML('beforeend',SAVE.owned[item.id]?'<div class="own">OWNED</div>':`<div class="price"><i></i>${item.price}</div>`)}
   return d;
 }
 function refreshVB(){$('vbn').textContent=SAVE.vb.toLocaleString();$('stM').textContent=SAVE.stats.matches;$('stW').textContent=SAVE.stats.wins;$('stK').textContent=SAVE.stats.kills;
-  $('claim').disabled=Date.now()-SAVE.daily<864e5;$('claim').textContent=$('claim').disabled?'Daily bonus claimed':'Claim daily 250 V'}
+  $('claim').disabled=Date.now()-SAVE.daily<864e5;$('claim').textContent=$('claim').disabled?'Daily bonus claimed':'Claim daily 250 Shards'}
 function isEq(item){return item.type==='emote'?SAVE.eq.emotes.includes(item.id):SAVE.eq[item.type]===item.id}
 const LK_LIST={outfit:OUTFITS,bling:BLINGS,glider:GLIDERS,emote:EMOTES};
 function renderLocker(){
@@ -813,9 +813,9 @@ function openBuy(item){
   buyItem=item;const own=!!SAVE.owned[item.id];
   $('bmImg').src=thumbOf(item);$('bmImg').style.setProperty('--rc',RAR[item.rarity]);
   $('bmType').textContent=(item.rarity+' '+TYPE_NAME[item.type]).toUpperCase();$('bmName').textContent=item.name;
-  $('bmPrice').innerHTML=`<span class="price" style="position:static;background:none;font-size:22px"><i style="width:24px;height:24px;font-size:13px">V</i>${item.price}</span>`;
+  $('bmPrice').innerHTML=`<span class="price" style="position:static;background:none;font-size:22px"><i style="width:28px;height:28px"></i>${item.price}</span>`;
   const can=SAVE.vb>=item.price;
-  $('bmMsg').textContent=own?'You already own this item.':can?'':`You need ${item.price-SAVE.vb} more V-Bucks. Win matches or claim the daily bonus.`;
+  $('bmMsg').textContent=own?'You already own this item.':can?'':`You need ${item.price-SAVE.vb} more Vex-Shards. Win matches or claim the daily bonus.`;
   $('bmBuy').disabled=own||!can;$('bmBuy').textContent='PURCHASE';
   $('buyModal').classList.remove('hidden');
 }
@@ -835,7 +835,7 @@ function showTab(t){
   refreshVB();
 }
 for(const b of document.querySelectorAll('#tabs button'))b.onclick=()=>showTab(b.dataset.tab);
-$('claim').onclick=()=>{SAVE.vb+=250;SAVE.daily=Date.now();persist();refreshVB();lbToast('+250 V-Bucks')};
+$('claim').onclick=()=>{SAVE.vb+=250;SAVE.daily=Date.now();persist();refreshVB();lbToast('+250 Vex-Shards')};
 $('tabLobby').addEventListener('click',e=>{
   if(e.target!==e.currentTarget||!inLobby)return;
   const ids=SAVE.eq.emotes.filter(Boolean);if(!ids.length)return;
@@ -1075,7 +1075,7 @@ function endGame(win){
   setTimeout(()=>{
     $('endtitle').textContent=win?'VICTORY ROYALE':'ELIMINATED';
     $('endtitle').style.backgroundImage=win?'linear-gradient(90deg,#ffe45e,#ffb300)':'';
-    $('endsub').textContent=(win?`You are the last one standing · ${P.kills} eliminations`:`You placed #${place} of 25 · ${P.kills} eliminations`)+` · +${reward} V-Bucks`;
+    $('endsub').textContent=(win?`You are the last one standing · ${P.kills} eliminations`:`You placed #${place} of 25 · ${P.kills} eliminations`)+` · +${reward} Vex-Shards`;
     $('end').classList.remove('hidden');
   },win?800:1600);
 }
