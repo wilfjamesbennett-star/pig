@@ -173,7 +173,6 @@
     <div id="lbHint">Click your character to emote · Z X C in match</div>
     <div id="lbStats"><div><b id="stM">0</b>MATCHES</div><div><b id="stW">0</b>WINS</div><div><b id="stK">0</b>ELIMS</div></div>
     <div id="lbPlayBox">
-      <button id="claim" class="ghost">Claim daily 250 Shards</button>
       <div class="mode">SOLO · BATTLE ROYALE · 25 PLAYERS</div>
       <button id="lbPlay">PLAY</button>
     </div>
@@ -927,8 +926,7 @@ function cardEl(item,opts={}){
   if(opts.price!==undefined){d.insertAdjacentHTML('beforeend',SAVE.owned[item.id]?'<div class="own">OWNED</div>':`<div class="price"><i></i>${item.price}</div>`)}
   return d;
 }
-function refreshVB(){$('vbn').textContent=SAVE.vb.toLocaleString();$('stM').textContent=SAVE.stats.matches;$('stW').textContent=SAVE.stats.wins;$('stK').textContent=SAVE.stats.kills;
-  $('claim').disabled=Date.now()-SAVE.daily<864e5;$('claim').textContent=$('claim').disabled?'Daily bonus claimed':'Claim daily 250 Shards'}
+function refreshVB(){$('vbn').textContent=SAVE.vb.toLocaleString();$('stM').textContent=SAVE.stats.matches;$('stW').textContent=SAVE.stats.wins;$('stK').textContent=SAVE.stats.kills;}
 function isEq(item){return item.type==='emote'?SAVE.eq.emotes.includes(item.id):SAVE.eq[item.type]===item.id}
 const LK_LIST={outfit:OUTFITS,bling:BLINGS,glider:GLIDERS,emote:EMOTES};
 function renderLocker(){
@@ -998,7 +996,7 @@ function openBuy(item){
   $('bmType').textContent=(item.rarity+' '+TYPE_NAME[item.type]).toUpperCase();$('bmName').textContent=item.name;
   $('bmPrice').innerHTML=`<span class="price" style="position:static;background:none;font-size:22px"><i style="width:28px;height:28px"></i>${item.price}</span>`;
   const can=SAVE.vb>=item.price;
-  $('bmMsg').textContent=own?'You already own this item.':can?'':`You need ${item.price-SAVE.vb} more Vex-Shards. Win matches or claim the daily bonus.`;
+  $('bmMsg').textContent=own?'You already own this item.':can?'':`You need ${item.price-SAVE.vb} more Vex-Shards. Win matches and get eliminations to earn more.`;
   $('bmBuy').disabled=own||!can;$('bmBuy').textContent='PURCHASE';
   $('buyModal').classList.remove('hidden');
 }
@@ -1018,7 +1016,6 @@ function showTab(t){
   refreshVB();
 }
 for(const b of document.querySelectorAll('#tabs button'))b.onclick=()=>showTab(b.dataset.tab);
-$('claim').onclick=()=>{SAVE.vb+=250;SAVE.daily=Date.now();persist();refreshVB();lbToast('+250 Vex-Shards')};
 $('tabLobby').addEventListener('click',e=>{
   if(e.target!==e.currentTarget||!inLobby)return;
   const ids=SAVE.eq.emotes.filter(Boolean);if(!ids.length)return;
