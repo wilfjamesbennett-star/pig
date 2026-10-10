@@ -20,3 +20,11 @@ Click **PLAY** (mouse is captured; Esc pauses).
 | F | enter / exit car |
 | Q | toggle build mode (1 wall · 2 floor · 3 ramp) |
 | 1-3, wheel, R | weapons, reload |
+
+## Weekly drops
+
+- **Every Monday 00:00 UTC** the game generates a new batch of skins (3 outfits, 2 gliders, 2 back blings), the same for every player.
+- **Every Monday** a scheduled Claude session also adds one hand-made addition (new skin, emote, weapon, map piece…) and logs it below.
+
+### Changelog
+- 2026-10-10: Anime cel-shaded skins, lobby / locker / rotating item shop, Vex-Shards currency, weekly drops.

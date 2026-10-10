@@ -117,6 +117,13 @@
   #bmBuy{background:#ffd23f;color:#241a00;text-shadow:none}#bmBuy:disabled{opacity:.4}
   #lbToast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);background:#ffd23f;color:#241a00;font-weight:900;padding:10px 22px;letter-spacing:1px;opacity:0;transition:opacity .25s;pointer-events:none;text-shadow:none}
   @media (max-width:760px){#lbStats{display:none}#lbPlayBox{width:210px}#nameTag{margin-left:0}#lkLeft{width:calc(100% - 48px)}}
+  #dropBanner{position:absolute;right:28px;top:104px;background:linear-gradient(90deg,#2a1470cc,#0f3a7fcc);border:2px solid #7b5cff;padding:8px 20px;font-weight:700;font-size:14px;letter-spacing:1.5px;white-space:nowrap;text-align:center}
+  #dropBanner b{color:#7df0ff;margin-right:6px}#dropBanner span{display:block;font-size:11px;opacity:.75;letter-spacing:1px;margin-top:2px}
+  .card .new{position:absolute;left:0;bottom:46px;background:#ff3bd4;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;letter-spacing:1.5px;text-shadow:none}
+  #tabs button.dot{position:relative}#tabs button.dot::after{content:"";position:absolute;right:6px;top:6px;width:10px;height:10px;border-radius:50%;background:#ff3bd4;box-shadow:0 0 8px #ff3bd4}
+  .pager{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:16px;font-weight:800;letter-spacing:2px;font-size:12px}
+  .lkMore{grid-column:1/-1;text-align:center;font-size:12px;letter-spacing:1px;opacity:.7;padding:6px}
+  @media (max-width:760px){#dropBanner{font-size:11px;padding:6px 10px}}
 </style>
 </head>
 <body>
@@ -161,6 +168,7 @@
   </header>
 
   <section id="tabLobby" class="tab">
+    <div id="dropBanner"></div>
     <div id="nameTag"><b id="ntName">Player</b><span id="ntSkin"></span></div>
     <div id="lbHint">Click your character to emote · Z X C in match</div>
     <div id="lbStats"><div><b id="stM">0</b>MATCHES</div><div><b id="stW">0</b>WINS</div><div><b id="stK">0</b>ELIMS</div></div>
@@ -549,7 +557,7 @@ function animateHuman(e,dt,speed,aiming){
 }
 /* ============================ COSMETICS / LOBBY ============================ */
 const RAR={common:'#b1b5bd',uncommon:'#5fcf4a',rare:'#3ea8ff',epic:'#b45bff',legendary:'#ffa72b'};
-const ROTATE_HOURS=6; // the shop rotates this often
+const ROTATE_HOURS=6; // the shop rotates this often (each rotation features outfits from the newest weekly drop)
 const O=(id,name,rarity,price,d)=>Object.assign({id,type:'outfit',name,rarity,price},d);
 const OUTFITS=[
   O('o_rookie','Cadet Kai','common',0,{shirt:0x1f3a78,pants:0x16254f,skin:0xf6d3b8,hair:0x6b4226,hair2:0x9c6b3a,eye:0x28b4ff,neon:0x2ee6ff,shoe:0x10182f,hs:'spiky',acc:['phones','core']}),
@@ -595,7 +603,64 @@ const EMOTES=[
   E('e_floss','Side Swipe','epic',800,'🕺','floss'),
 ];
 const CATALOG=[...OUTFITS,...BLINGS,...GLIDERS,...EMOTES];
-const byId=id=>CATALOG.find(x=>x.id===id);
+const CAT_MAP=new Map(CATALOG.map(x=>[x.id,x]));
+const byId=id=>CAT_MAP.get(id);
+
+/* ---- skin drops: a new batch of procedurally designed items arrives on a fixed cycle ----
+   Every drop number maps to the same items for every player (seeded), so owned items stay valid. */
+const DAY_MS=864e5,DROP_MS=7*DAY_MS;                       // one drop per week
+const MONDAY_OFFSET=4*DAY_MS;                               // 1970-01-01 was a Thursday, so weeks roll over on Monday 00:00 UTC
+const dropAt=ms=>Math.floor((ms-MONDAY_OFFSET)/DROP_MS);    // drop number for a moment in time
+const dropStart=n=>n*DROP_MS+MONDAY_OFFSET;
+const FIRST_DROP=dropAt(Date.UTC(2026,8,14));               // the catalogue starts here and grows every Monday
+const curDrop=()=>dropAt(Date.now());
+const seeded=seed=>{let s=seed>>>0;return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
+const GEN_ADJ=['Neon','Astral','Crimson','Void','Chrono','Sakura','Quantum','Pixel','Aether','Hyper','Cobalt','Ember','Lunar','Solar','Glitch','Prism','Nova','Zero','Mythic','Static','Vapor','Obsidian','Jade','Echo'];
+const GEN_NOUN=['Samurai','Pilot','Idol','Hacker','Ranger','Oracle','Striker','Witch','Phantom','Knight','Courier','Medic','Racer','Sentinel','Runner','Valkyrie','Ronin','Mage','Drifter','Pioneer','Duelist','Cadet','Angel','Hunter'];
+const GEN_GLIDE=['Wing','Sail','Canopy','Kite','Manta','Aurora'];
+const GEN_PACK=['Pack','Core','Rig','Drone','Halo','Engine'];
+const GEN_ACC=['ears','tail','phones','glasses','mask','band','star','pauldron','core','scarf','antenna','horns','halo','cape'];
+const GEN_SKIN=[0xf6d3b8,0xe8b48e,0xc98e66,0x8d5a3b,0xfbe3d3,0xd9c3a5,0x6b4631];
+const GEN_HS=['spiky','long','twin','pony','short'];
+const GEN_STYLE=['suit','skirt','coat'];
+const hsl=(h,s,l)=>new T.Color().setHSL(h%1,s,l).getHex();
+const hexStr=n=>'#'+n.toString(16).padStart(6,'0');
+const RARITY_PRICE={outfit:{uncommon:800,rare:1200,epic:1500,legendary:2000},other:{uncommon:500,rare:800,epic:1200,legendary:1800}};
+const rollRarity=r=>{const v=r();return v<.38?'uncommon':v<.72?'rare':v<.92?'epic':'legendary'};
+function genDrop(n){
+  const r=seeded(n*7919+13),out=[],pickOf=a=>a[Math.floor(r()*a.length)];
+  for(let i=0;i<3;i++){
+    const rarity=rollRarity(r),h=r(),h2=h+.5+(r()-.5)*.25,h3=h+.12+r()*.25;
+    const accPool=GEN_ACC.slice();const acc=[];
+    const want={uncommon:2,rare:3,epic:4,legendary:4}[rarity];
+    if(rarity==='legendary'){acc.push('cape','halo');accPool.splice(accPool.indexOf('cape'),1);accPool.splice(accPool.indexOf('halo'),1)}
+    while(acc.length<want){const a=accPool.splice(Math.floor(r()*accPool.length),1)[0];acc.push(a)}
+    if(rarity==='legendary'&&r()<.4)acc.push('crown');
+    out.push({id:`o_${n}_${i}`,type:'outfit',drop:n,name:`${pickOf(GEN_ADJ)} ${pickOf(GEN_NOUN)}`,rarity,price:RARITY_PRICE.outfit[rarity],
+      shirt:hsl(h2,.55,.26+r()*.22),pants:hsl(h2,.5,.13+r()*.14),skin:pickOf(GEN_SKIN),hair:hsl(h3,.7,.55+r()*.3),hair2:hsl(h3+.1,.9,.72),
+      eye:hsl(h+.5,1,.6),neon:hsl(h,1,.6),shoe:hsl(h2,.4,.16),hs:pickOf(GEN_HS),style:pickOf(GEN_STYLE),acc,glowHair:rarity==='uncommon'?0:1,gold:0});
+  }
+  for(let gi=0;gi<2;gi++){ const rarity=rollRarity(r),h=r();
+    out.push({id:gi?`g_${n}_${gi}`:`g_${n}`,type:'glider',drop:n,name:`${pickOf(GEN_ADJ)} ${pickOf(GEN_GLIDE)}`,rarity,price:RARITY_PRICE.other[rarity],pat:pickOf(['plain','camo','stripes','wave','stars']),c:hexStr(hsl(h,.7,.3)),c2:hexStr(hsl(h+.45,1,.62))}) }
+  for(let bi=0;bi<2;bi++){ const rarity=rollRarity(r),h=r();
+    out.push({id:bi?`b_${n}_${bi}`:`b_${n}`,type:'bling',drop:n,name:`${pickOf(GEN_ADJ)} ${pickOf(GEN_PACK)}`,rarity,price:RARITY_PRICE.other[rarity],k:pickOf(['round','box','shell','jet','wings']),c:hsl(h,.6,.45),c2:hsl(h+.5,1,.62)}) }
+  return out;
+}
+let lastGenDrop=FIRST_DROP-1;
+const usedNames=new Set(CATALOG.map(x=>x.name));
+function syncDrops(){
+  let added=0;
+  for(let n=lastGenDrop+1;n<=curDrop();n++){
+    for(const it of genDrop(n)){
+      if(usedNames.has(it.name)){let k=2;while(usedNames.has(it.name+' MK'+k))k++;it.name+=' MK'+k}
+      usedNames.add(it.name);
+      (it.type==='outfit'?OUTFITS:it.type==='glider'?GLIDERS:BLINGS).push(it);CATALOG.push(it);CAT_MAP.set(it.id,it);added++;
+    }
+    lastGenDrop=n;
+  }
+  return added;
+}
+syncDrops();
 const TYPE_NAME={outfit:'Outfit',bling:'Back Bling',glider:'Glider',emote:'Emote'};
 const EMOTE_LEN={wave:3,hip:4,flex:3,spin:1.7,floss:4,pump:3,roll:1.4};
 
@@ -843,12 +908,21 @@ function thumbOf(item){
   return thumbCache[item.id]=cv.toDataURL('image/jpeg',.9);
 }
 
+const PLACEHOLDER='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const thumbQueue=[];let thumbBusy=false;
+function queueThumb(item,img){thumbQueue.push([item,img]);if(!thumbBusy){thumbBusy=true;requestAnimationFrame(pumpThumbs)}}
+function pumpThumbs(){
+  let n=0;while(thumbQueue.length&&n<3){const [it,img]=thumbQueue.shift();if(img.isConnected){img.src=thumbOf(it);n++}}
+  if(thumbQueue.length)requestAnimationFrame(pumpThumbs);else thumbBusy=false;
+}
 /* ---- lobby UI ---- */
 const lbToast=t=>{const el=$('lbToast');el.textContent=t;el.style.opacity=1;clearTimeout(lbToast.h);lbToast.h=setTimeout(()=>el.style.opacity=0,1800)};
 function cardEl(item,opts={}){
   const d=document.createElement('button');d.className='card'+(opts.eq?' eq':'')+(opts.locked?' locked':'');
   d.style.setProperty('--rc',RAR[item.rarity]);
-  d.innerHTML=`<img alt="" src="${thumbOf(item)}"><div class="cn"></div><div class="ct">${item.rarity} ${TYPE_NAME[item.type]}</div>`;
+  d.innerHTML=`<img alt="" src="${thumbCache[item.id]||PLACEHOLDER}"><div class="cn"></div><div class="ct">${item.rarity} ${TYPE_NAME[item.type]}</div>`;
+  if(!thumbCache[item.id])queueThumb(item,d.querySelector('img'));
+  if(item.drop&&item.drop>=curDrop())d.insertAdjacentHTML('beforeend','<div class="new">NEW</div>');
   d.querySelector('.cn').textContent=item.name;
   if(opts.price!==undefined){d.insertAdjacentHTML('beforeend',SAVE.owned[item.id]?'<div class="own">OWNED</div>':`<div class="price"><i></i>${item.price}</div>`)}
   return d;
@@ -860,11 +934,13 @@ const LK_LIST={outfit:OUTFITS,bling:BLINGS,glider:GLIDERS,emote:EMOTES};
 function renderLocker(){
   const cats=$('lkCats');cats.innerHTML='';
   for(const k of Object.keys(LK_LIST)){const b=document.createElement('button');const own=LK_LIST[k].filter(i=>SAVE.owned[i.id]).length;
-    b.textContent=`${TYPE_NAME[k]} ${own}/${LK_LIST[k].length}`;b.className=LB.cat===k?'on':'';b.onclick=()=>{LB.cat=k;renderLocker()};cats.appendChild(b)}
+    b.textContent=`${TYPE_NAME[k]} ${own}/${LK_LIST[k].length}`;b.className=LB.cat===k?'on':'';b.onclick=()=>{LB.cat=k;LB.page=0;renderLocker()};cats.appendChild(b)}
   const sl=$('lkSlots');sl.classList.toggle('hidden',LB.cat!=='emote');sl.innerHTML='';
   if(LB.cat==='emote')SAVE.eq.emotes.forEach((id,i)=>{const b=document.createElement('button');const it=id&&byId(id);b.textContent=`${'ZXC'[i]}  ${it?it.icon+' '+it.name:'(empty)'}`;b.className=LB.slot===i?'on':'';b.onclick=()=>{LB.slot=i;if(it)playEmote(it);renderLocker()};sl.appendChild(b)});
   const grid=$('lkGrid');grid.innerHTML='';
-  const list=LK_LIST[LB.cat].slice().sort((a,b)=>(SAVE.owned[b.id]?1:0)-(SAVE.owned[a.id]?1:0));
+  const all=LK_LIST[LB.cat].filter(i=>SAVE.owned[i.id]).sort((a,b)=>(b.drop||0)-(a.drop||0)||(a.price-b.price));
+  const PER=24,pages=Math.max(1,Math.ceil(all.length/PER));LB.page=clamp(LB.page||0,0,pages-1);
+  const list=all.slice(LB.page*PER,LB.page*PER+PER);
   for(const item of list){
     const own=!!SAVE.owned[item.id];const c=cardEl(item,{eq:isEq(item),locked:!own});
     c.onclick=()=>{
@@ -876,19 +952,30 @@ function renderLocker(){
     };
     grid.appendChild(c);
   }
+  if(pages>1){const pg=document.createElement('div');pg.className='pager';
+    pg.innerHTML=`<button ${LB.page?'':'disabled'} class="ghost">‹ PREV</button><span>PAGE ${LB.page+1} / ${pages}</span><button ${LB.page<pages-1?'':'disabled'} class="ghost">NEXT ›</button>`;
+    const [bp,,bn]=pg.children;bp.onclick=()=>{LB.page--;renderLocker()};bn.onclick=()=>{LB.page++;renderLocker()};grid.appendChild(pg)}
+  const unowned=LK_LIST[LB.cat].length-LK_LIST[LB.cat].filter(i=>SAVE.owned[i.id]).length;
+  if(unowned){const h=document.createElement('div');h.className='lkMore';h.textContent=`${unowned} more ${TYPE_NAME[LB.cat].toLowerCase()}${unowned>1?'s':''} to find in the Item Shop`;grid.appendChild(h)}
   const cur=LB.cat==='emote'?byId(SAVE.eq.emotes[LB.slot]):byId(SAVE.eq[LB.cat]);
   $('lkName').textContent=cur?cur.name:'—';$('lkSub').textContent=cur?cur.rarity+' '+TYPE_NAME[cur.type]:'';
 }
 /* rotating shop: the stock is derived from the current rotation number, so it changes on a schedule and is the same on every refresh */
 function shopSlot(){return Math.floor(Date.now()/(ROTATE_HOURS*36e5))}
+const RANK={common:0,uncommon:1,rare:2,epic:3,legendary:4};
 function shopStock(slot){
-  let s=slot*2654435761>>>0;const rng=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-  const pickFrom=(arr,used)=>{const pool=arr.filter(i=>i.price>0&&!used.has(i.id));const it=pool[Math.floor(rng()*pool.length)];used.add(it.id);return it};
+  const rng=seeded(slot*2654435761>>>0);
   const used=new Set();
-  const top=[...OUTFITS,...GLIDERS,...BLINGS].filter(i=>i.rarity==='epic'||i.rarity==='legendary');
-  const featured=[pickFrom(OUTFITS.filter(i=>i.rarity!=='uncommon'),used),pickFrom(top,used)];
-  const daily=[pickFrom(OUTFITS.filter(i=>i.rarity==='uncommon'||i.rarity==='rare'),used),pickFrom(BLINGS,used),pickFrom(GLIDERS,used),pickFrom(EMOTES,used)];
-  return {featured,daily};
+  const pickFrom=(arr,fallback)=>{let pool=arr.filter(i=>i.price>0&&!used.has(i.id));if(!pool.length&&fallback)pool=fallback.filter(i=>i.price>0&&!used.has(i.id));if(!pool.length)return null;const it=pool[Math.floor(rng()*pool.length)];used.add(it.id);return it};
+  const wk=dropAt(slot*ROTATE_HOURS*36e5);
+  let fresh=CATALOG.filter(i=>i.drop===wk&&i.type==='outfit').sort((a,b)=>RANK[b.rarity]-RANK[a.rarity]);
+  if(fresh.length>1){const o=slot%fresh.length;fresh=[...fresh.slice(o),...fresh.slice(0,o)]}
+  const topAll=CATALOG.filter(i=>(i.rarity==='epic'||i.rarity==='legendary')&&i.type!=='emote');
+  const f0=fresh[0]&&!used.has(fresh[0].id)?(used.add(fresh[0].id),fresh[0]):pickFrom(OUTFITS,CATALOG);
+  const f1=pickFrom(topAll,CATALOG);
+  const d0=fresh[1]&&!used.has(fresh[1].id)?(used.add(fresh[1].id),fresh[1]):pickFrom(OUTFITS.filter(i=>i.rarity==='uncommon'||i.rarity==='rare'),OUTFITS);
+  const d1=pickFrom(BLINGS,CATALOG),d2=pickFrom(GLIDERS,CATALOG),d3=pickFrom(EMOTES,CATALOG);
+  return {featured:[f0,f1].filter(Boolean),daily:[d0,d1,d2,d3].filter(Boolean)};
 }
 let shopShown=-1;
 function renderShop(){
@@ -927,7 +1014,7 @@ function showTab(t){
   LB.tab=t;
   for(const b of document.querySelectorAll('#tabs button'))b.classList.toggle('on',b.dataset.tab===t);
   $('tabLobby').classList.toggle('hidden',t!=='lobby');$('tabLocker').classList.toggle('hidden',t!=='locker');$('tabShop').classList.toggle('hidden',t!=='shop');
-  if(t==='locker')renderLocker();if(t==='shop'){renderShop();tickShopTimer()}
+  if(t==='locker')renderLocker();if(t==='shop'){renderShop();tickShopTimer();SAVE.seenDrop=curDrop();persist()}
   refreshVB();
 }
 for(const b of document.querySelectorAll('#tabs button'))b.onclick=()=>showTab(b.dataset.tab);
@@ -937,8 +1024,22 @@ $('tabLobby').addEventListener('click',e=>{
   const ids=SAVE.eq.emotes.filter(Boolean);if(!ids.length)return;
   playEmote(byId(ids[LB.emoteIdx++%ids.length]));
 });
-setInterval(()=>{if(inLobby&&LB.tab==='shop')tickShopTimer()},1000);
+function tickDrops(){
+  const left=dropStart(curDrop()+1)-Date.now();
+  const d=Math.floor(left/DAY_MS),h=Math.floor(left%DAY_MS/36e5),m=Math.floor(left%36e5/6e4),sc=Math.floor(left%6e4/1e3);
+  const p2=n=>String(n).padStart(2,'0');
+  const released=CATALOG.filter(i=>i.drop).length;
+  $('dropBanner').innerHTML=`<b>NEW DROP EVERY MONDAY</b> ${d}d ${p2(h)}:${p2(m)}:${p2(sc)}<span>${released} drop items released so far</span>`;
+  if(curDrop()>lastGenDrop){
+    const n=syncDrops();
+    if(inLobby){lbToast(`Monday drop! ${n} new items in the Item Shop`);showTab(LB.tab)}
+  }
+  document.querySelector('#tabs [data-tab=shop]').classList.toggle('dot',(SAVE.seenDrop||0)<curDrop());
+  if(inLobby&&LB.tab==='shop')tickShopTimer();
+}
+setInterval(tickDrops,1000);
 let inLobby=true;
+tickDrops();
 
 const carCols=[0xc0392b,0x2c6bd8,0xf1c40f,0x1e1e22,0xecf0f1,0x27ae60,0x8e44ad,0xe67e22,0x7f8c8d];
 function extrudeProfile(shape,width,bevel){
@@ -1728,7 +1829,7 @@ function frame(now){
 }
 init();
 requestAnimationFrame(frame);
-window.__game={W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),keys,get alive(){return aliveCount}};
+window.__game={W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
 })();
 </script>
 </body>
