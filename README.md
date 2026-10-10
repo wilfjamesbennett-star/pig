@@ -37,3 +37,18 @@ Open the shared artifact page (people need access via the Share menu). Everyone 
 - **Invite** (creates a party if you are not in one). The invited player joins from Friends → Invites.
 - The party leader presses **PLAY SQUAD**; everyone drops together with the same storm and sees each other with name tags, emotes and gunfire.
 - Rival bots are simulated on each player's own machine, so bots are not shared between squad members.
+
+## Game modes (pick in the lobby)
+
+| Mode | What it is |
+|---|---|
+| Battle Royale | 25 players, shrinking storm, build, squads with friends |
+| Red vs Blue | 6v6 team deathmatch, first to 30, respawns, team colours |
+| Strike Force | 5v5 first-person, first to 40, killstreaks (3 = UAV, 5 = airstrike) |
+| Free Roam | open city, wanted level 1-5 with cops/SWAT, cash, carjacking, civilians |
+| Brick World | LEGO-style minifigs, unlimited coloured bricks (Q build, 4-9 colours), find 25 gold bricks |
+
+Rewards: 10 Vex-Shards per elimination, 50 for a win (team modes), 50 for finding all gold bricks, up to 100 for leaving Free Roam with cash.
+Squads with friends are Battle Royale only.
+
+- 2026-10-10: Added Red vs Blue, Strike Force, Free Roam and Brick World modes.
