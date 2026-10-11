@@ -1516,10 +1516,10 @@ function spawnCop(){
   }
 }
 function updateModes(dt){
-  if(MODE.id==='br')return;
-  if(!gameOver)MST.t+=dt;
   if(P.state==='foot')P.mesh.visible=!fpMode();
   updateViewmodel(dt);
+  if(MODE.id==='br')return;
+  if(!gameOver)MST.t+=dt;
   // respawns
   for(const b of bots){if(!b.alive&&b.respT!==undefined){b.respT-=dt;if(b.respT<=0)respawnBot(b)}}
   if(P.state==='dead'&&P.deadT!==undefined&&!gameOver){P.deadT-=dt;if(P.deadT<=0)respawnPlayer()}
