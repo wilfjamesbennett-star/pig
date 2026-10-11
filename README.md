@@ -58,3 +58,4 @@ Squads with friends are Battle Royale only.
 
 - **M**: big map. Click to set/clear a waypoint (shown on the minimap with distance). **M** or **Esc** closes it.
 - **Quests** tab: 6 weekly quests, new every Monday 00:00 UTC, progress counts in Battle Royale and rewards are paid as soon as a quest completes. Discover landmarks (parks, towers, plazas) for the landmark quest.
+- 2026-10-11: Characters are now realistic: human proportions, shaded face, natural hair colours, muted clothes, no outlines or neon trim.
