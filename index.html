@@ -2577,23 +2577,44 @@ addEventListener('pagehide',saveRun);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRun()});
 /* ---- portable save code (carry progress between devices / browsers) ---- */
 const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))),b64d=t=>JSON.parse(decodeURIComponent(escape(atob(t))));
+const B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function makeSaveCode(){
-  const d={v:SAVE.vb,o:Object.keys(SAVE.owned),e:SAVE.eq,s:SAVE.stats,n:SAVE.name,m:SAVE.mode,b:SAVE.bestBrick};
-  return b64e(d).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'').match(/.{1,6}/g).join(' ');
+  const by=[],vi=n=>{n=Math.max(0,Math.floor(n)||0);while(n>=128){by.push(n%128+128);n=Math.floor(n/128)}by.push(n)};
+  const idx=id=>id?CATALOG.findIndex(x=>x.id===id)+1:0;
+  vi(1);vi(SAVE.vb);vi(SAVE.stats.matches);vi(SAVE.stats.wins);vi(SAVE.stats.kills);
+  vi(Object.keys(MODES).indexOf(SAVE.mode)+1);vi((SAVE.bestBrick||0)*10);
+  const nb=Math.ceil(CATALOG.length/8);vi(nb);
+  for(let i=0;i<nb;i++){let v=0;for(let j=0;j<8;j++){const it=CATALOG[i*8+j];if(it&&SAVE.owned[it.id])v|=1<<j}by.push(v)}
+  const e=SAVE.eq;[e.outfit,e.bling,e.glider,e.emotes[0],e.emotes[1],e.emotes[2]].forEach(id=>vi(idx(id)));
+  const nm=new TextEncoder().encode(SAVE.name||'');vi(nm.length);by.push(...nm);
+  let bits='',out='';for(const x of by)bits+=x.toString(2).padStart(8,'0');
+  for(let i=0;i<bits.length;i+=5)out+=B32[parseInt(bits.slice(i,i+5).padEnd(5,'0'),2)];
+  return out.match(/.{1,5}/g).join('-');
 }
 function applySaveCode(code){
   try{
-    let t=code.replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';
-    const d=b64d(t);if(!d.o||!d.e)throw 0;
-    SAVE.vb=d.v|0;SAVE.owned={};for(const id of d.o)SAVE.owned[id]=1;SAVE.eq=d.e;
-    SAVE.stats=Object.assign({matches:0,wins:0,kills:0},d.s);if(d.n)SAVE.name=d.n;if(d.m)SAVE.mode=d.m;if(d.b)SAVE.bestBrick=d.b;
+    const t=code.toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V');
+    let bits='';for(const c of t){const k=B32.indexOf(c);if(k<0)throw 0;bits+=k.toString(2).padStart(5,'0')}
+    const by=[];for(let i=0;i+8<=bits.length;i+=8)by.push(parseInt(bits.slice(i,i+8),2));
+    let p=0;const vi=()=>{let n=0,m=1,b;do{b=by[p++];if(b===undefined)throw 0;n+=(b&127)*m;m*=128}while(b>=128);return n};
+    if(vi()!==1)throw 0;
+    const vb=vi(),ma=vi(),wi=vi(),ki=vi(),mo=vi(),bb=vi(),nb=vi(),own={};
+    for(let i=0;i<nb;i++){const v=by[p++];if(v===undefined)throw 0;for(let j=0;j<8;j++)if(v&(1<<j)){const it=CATALOG[i*8+j];if(it)own[it.id]=1}}
+    const id=()=>{const k=vi();return k&&CATALOG[k-1]?CATALOG[k-1].id:null};
+    const eq={outfit:id(),bling:id(),glider:id(),emotes:[id(),id(),id()]};
+    const nl=vi(),name=new TextDecoder().decode(new Uint8Array(by.slice(p,p+nl)));
+    if(!eq.outfit||!own[eq.outfit])throw 0;
+    Object.assign(own,{o_rookie:1,b_none:1,b_round:1,g_classic:1,e_wave:1});
+    SAVE.vb=vb;SAVE.owned=own;SAVE.eq=eq;SAVE.stats={matches:ma,wins:wi,kills:ki};
+    const mk=Object.keys(MODES)[mo-1];if(mk)SAVE.mode=mk;
+    if(bb)SAVE.bestBrick=bb/10;if(name)SAVE.name=name;
     persist();return true;
   }catch(e){return false}
 }
 (function(){
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:none;align-items:center;justify-content:center';
-  ov.innerHTML='<div style="background:#14161f;border:2px solid #2ee6ff;border-radius:12px;padding:20px;width:min(520px,92vw);color:#fff;font-family:inherit"><h3 style="margin:0 0 8px">💾 SAVE CODE</h3><p style="margin:0 0 8px;font-size:14px;line-height:1.5">This is a <b>secret password</b> that remembers your game!<br>🖥️ <b>Saving:</b> press COPY, then paste it somewhere safe (like a note).<br>📱 <b>On another device:</b> open this box, paste your code, press LOAD.<br>⚠️ LOAD swaps the game on this device for the saved one.</p><textarea id="scText" rows="5" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0b0c12;color:#9ff;border:1px solid #345;border-radius:6px;padding:8px;font-family:monospace;font-size:12px"></textarea><div id="scMsg" style="min-height:18px;font-size:13px;margin:6px 0"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="scCopy" class="ghost">COPY</button><button id="scLoad" class="ghost">LOAD</button><button id="scClose" class="ghost">CLOSE</button></div></div>';
+  ov.innerHTML='<div style="background:#14161f;border:2px solid #2ee6ff;border-radius:12px;padding:20px;width:min(520px,92vw);color:#fff;font-family:inherit"><h3 style="margin:0 0 8px">💾 SAVE CODE</h3><p style="margin:0 0 8px;font-size:14px;line-height:1.5">This is a <b>secret password</b> that remembers your game!<br>🖥️ <b>Saving:</b> press COPY, then paste it somewhere safe (like a note).<br>📱 <b>On another device:</b> open this box, paste your code, press LOAD.<br>⚠️ LOAD swaps the game on this device for the saved one.</p><textarea id="scText" rows="3" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0b0c12;color:#9ff;border:1px solid #345;border-radius:6px;padding:8px;font-family:monospace;font-size:20px;letter-spacing:2px;text-align:center"></textarea><div id="scMsg" style="min-height:18px;font-size:13px;margin:6px 0"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="scCopy" class="ghost">COPY</button><button id="scLoad" class="ghost">LOAD</button><button id="scClose" class="ghost">CLOSE</button></div></div>';
   document.body.appendChild(ov);
   const txt=ov.querySelector('#scText'),msg=ov.querySelector('#scMsg');
   const open=()=>{txt.value=makeSaveCode();msg.textContent='';ov.style.display='flex'};
