@@ -2583,13 +2583,12 @@ function makeSaveCode(){
   const idx=id=>id?CATALOG.findIndex(x=>x.id===id)+1:0;
   vi(1);vi(SAVE.vb);vi(SAVE.stats.matches);vi(SAVE.stats.wins);vi(SAVE.stats.kills);
   vi(Object.keys(MODES).indexOf(SAVE.mode)+1);vi((SAVE.bestBrick||0)*10);
-  const nb=Math.ceil(CATALOG.length/8);vi(nb);
-  for(let i=0;i<nb;i++){let v=0;for(let j=0;j<8;j++){const it=CATALOG[i*8+j];if(it&&SAVE.owned[it.id])v|=1<<j}by.push(v)}
+  const ol=CATALOG.map((x,i)=>SAVE.owned[x.id]?i+1:0).filter(Boolean);vi(ol.length);ol.forEach(vi);
   const e=SAVE.eq;[e.outfit,e.bling,e.glider,e.emotes[0],e.emotes[1],e.emotes[2]].forEach(id=>vi(idx(id)));
   const nm=new TextEncoder().encode(SAVE.name||'');vi(nm.length);by.push(...nm);
   let bits='',out='';for(const x of by)bits+=x.toString(2).padStart(8,'0');
   for(let i=0;i<bits.length;i+=5)out+=B32[parseInt(bits.slice(i,i+5).padEnd(5,'0'),2)];
-  return out.match(/.{1,5}/g).join('-');
+  return out.match(/.{1,4}/g).join(' ');
 }
 function applySaveCode(code){
   try{
@@ -2598,8 +2597,8 @@ function applySaveCode(code){
     const by=[];for(let i=0;i+8<=bits.length;i+=8)by.push(parseInt(bits.slice(i,i+8),2));
     let p=0;const vi=()=>{let n=0,m=1,b;do{b=by[p++];if(b===undefined)throw 0;n+=(b&127)*m;m*=128}while(b>=128);return n};
     if(vi()!==1)throw 0;
-    const vb=vi(),ma=vi(),wi=vi(),ki=vi(),mo=vi(),bb=vi(),nb=vi(),own={};
-    for(let i=0;i<nb;i++){const v=by[p++];if(v===undefined)throw 0;for(let j=0;j<8;j++)if(v&(1<<j)){const it=CATALOG[i*8+j];if(it)own[it.id]=1}}
+    const vb=vi(),ma=vi(),wi=vi(),ki=vi(),mo=vi(),bb=vi(),no=vi(),own={};
+    for(let i=0;i<no;i++){const it=CATALOG[vi()-1];if(it)own[it.id]=1}
     const id=()=>{const k=vi();return k&&CATALOG[k-1]?CATALOG[k-1].id:null};
     const eq={outfit:id(),bling:id(),glider:id(),emotes:[id(),id(),id()]};
     const nl=vi(),name=new TextDecoder().decode(new Uint8Array(by.slice(p,p+nl)));
@@ -2614,7 +2613,7 @@ function applySaveCode(code){
 (function(){
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:none;align-items:center;justify-content:center';
-  ov.innerHTML='<div style="background:#14161f;border:2px solid #2ee6ff;border-radius:12px;padding:20px;width:min(520px,92vw);color:#fff;font-family:inherit"><h3 style="margin:0 0 8px">💾 SAVE CODE</h3><p style="margin:0 0 8px;font-size:14px;line-height:1.5">This is a <b>secret password</b> that remembers your game!<br>🖥️ <b>Saving:</b> press COPY, then paste it somewhere safe (like a note).<br>📱 <b>On another device:</b> open this box, paste your code, press LOAD.<br>⚠️ LOAD swaps the game on this device for the saved one.</p><textarea id="scText" rows="3" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0b0c12;color:#9ff;border:1px solid #345;border-radius:6px;padding:8px;font-family:monospace;font-size:20px;letter-spacing:2px;text-align:center"></textarea><div id="scMsg" style="min-height:18px;font-size:13px;margin:6px 0"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="scCopy" class="ghost">COPY</button><button id="scLoad" class="ghost">LOAD</button><button id="scClose" class="ghost">CLOSE</button></div></div>';
+  ov.innerHTML='<div style="background:#14161f;border:2px solid #2ee6ff;border-radius:14px;padding:22px;width:min(560px,94vw);color:#fff;font-family:inherit;text-align:center"><h2 style="margin:0 0 14px;font-size:28px">💾 SAVE CODE</h2><div style="font-size:18px;line-height:1.7;text-align:left;margin-bottom:14px"><div><b>1.</b> Press <b>COPY</b> 📋</div><div><b>2.</b> Paste it in a note 📝</div><div><b>3.</b> On your other device, paste it here and press <b>LOAD</b> ✅</div></div><textarea id="scText" rows="3" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0b0c12;color:#9ff;border:2px solid #345;border-radius:8px;padding:10px;font-family:monospace;font-size:24px;letter-spacing:3px;text-align:center"></textarea><div id="scMsg" style="min-height:26px;font-size:18px;margin:8px 0"></div><div style="display:flex;gap:10px;justify-content:center"><button id="scCopy" class="ghost" style="font-size:20px;padding:10px 22px">COPY</button><button id="scLoad" class="ghost" style="font-size:20px;padding:10px 22px">LOAD</button><button id="scClose" class="ghost" style="font-size:20px;padding:10px 22px">CLOSE</button></div></div>';
   document.body.appendChild(ov);
   const txt=ov.querySelector('#scText'),msg=ov.querySelector('#scMsg');
   const open=()=>{txt.value=makeSaveCode();msg.textContent='';ov.style.display='flex'};
