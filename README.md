@@ -5,7 +5,8 @@ A 3D open-world mix of GTA and Fortnite that runs in the browser (Three.js, no b
 - **Drop in** by parachute over a 600 m city of skyscrapers, parks and traffic-filled streets
 - **GTA**: steal any car (even moving traffic), drive, crash, explode, run people over
 - **Fortnite**: 24 AI rivals, shrinking storm, loot pickups, and **build mode** (walls, floors, ramps)
-- Weapons: pistol, assault rifle, shotgun. Headshots do double damage. Shoot enemy builds to destroy them.
+- Weapons: pistol, assault rifle, shotgun, plus found **SMG, sniper (zoom, 2.5x headshots) and rocket launcher**. Each comes in 5 rarities (common → legendary, up to +50% damage); loot glows in its rarity colour. Keys 1-6 / wheel to switch. Headshots do double damage. Shoot enemy builds to destroy them.
+- Rival bots now carry weapons of their own with rarities and tiers (Rookie → Boss): snipers keep their distance, shotgunners rush you, rockets blast, wounded veterans retreat. They drop their gun when eliminated.
 
 ## Website
 
@@ -33,6 +34,7 @@ Click **PLAY** (mouse is captured; Esc pauses).
 ### Changelog
 - 2026-10-12: Added a 💾 SAVE CODE button in the lobby: copy a short save code and load it on any other device or browser (shards, items, stats).
 - 2026-10-12: Free Roam and Brick World now autosave (position, cash, ammo, gold bricks, built bricks) and resume when you press PLAY again.
+- 2026-10-12: New weapons (SMG, sniper, rocket launcher) with 5 rarity tiers, weapon loot, and smarter bots with weapons and difficulty tiers.
 - 2026-10-10: Everything on foot is now first-person in every mode.
 - 2026-10-10: Anime cel-shaded skins, lobby / locker / rotating item shop, Vex-Shards currency, weekly drops.
 - 2026-10-10: Online play: names + name tags, random rival names, friends list (requests), parties, squad co-op (uses the artifact `room` capability).
