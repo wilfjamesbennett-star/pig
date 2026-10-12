@@ -226,6 +226,7 @@
   <section id="tabLobby" class="tab">
     <div id="dropBanner"></div>
     <div id="nameTag"><b id="ntName" style="display:none">Player</b><span id="ntSkin"></span></div>
+    <button id="saveCodeBtn" class="ghost" style="position:absolute;top:70px;right:16px;z-index:5;padding:6px 12px;font-weight:700">💾 SAVE CODE</button>
     <div id="nameEdit"><input id="nameInput" maxlength="16" aria-label="Your name" spellcheck="false"><button id="nameRoll" class="ghost" title="Random name">🎲</button></div>
     <div id="lbHint">Click your character to emote · Z X C in match</div>
     <div id="lbStats"><div><b id="stM">0</b>MATCHES</div><div><b id="stW">0</b>WINS</div><div><b id="stK">0</b>ELIMS</div></div>
@@ -2574,6 +2575,41 @@ function restoreRun(){
 setInterval(saveRun,4000);
 addEventListener('pagehide',saveRun);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRun()});
+/* ---- portable save code (carry progress between devices / browsers) ---- */
+const b64e=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))),b64d=t=>JSON.parse(decodeURIComponent(escape(atob(t))));
+function makeSaveCode(){
+  const d=Object.assign({},SAVE);delete d.uid;delete d.friends;
+  let run=null;try{run=localStorage.getItem(RUN_KEY)}catch(e){}
+  return 'OR1.'+b64e({s:d,r:run});
+}
+function applySaveCode(code){
+  try{
+    code=code.trim();if(!code.startsWith('OR1.'))throw 0;
+    const o=b64d(code.slice(4));if(!o.s||!o.s.owned||!o.s.eq)throw 0;
+    const keep={uid:SAVE.uid,friends:SAVE.friends};
+    for(const k of Object.keys(SAVE))delete SAVE[k];
+    Object.assign(SAVE,o.s,keep);SAVE.stats=Object.assign({matches:0,wins:0,kills:0},SAVE.stats);
+    persist();
+    try{if(o.r)localStorage.setItem(RUN_KEY,o.r)}catch(e){}
+    return true;
+  }catch(e){return false}
+}
+(function(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:none;align-items:center;justify-content:center';
+  ov.innerHTML='<div style="background:#14161f;border:2px solid #2ee6ff;border-radius:12px;padding:20px;width:min(520px,92vw);color:#fff;font-family:inherit"><h3 style="margin:0 0 8px">SAVE CODE</h3><p style="margin:0 0 8px;font-size:13px;opacity:.8">Copy this code to carry your progress to another device or browser. There, paste a code here and press LOAD. Loading replaces this device\'s progress.</p><textarea id="scText" rows="5" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0b0c12;color:#9ff;border:1px solid #345;border-radius:6px;padding:8px;font-family:monospace;font-size:12px"></textarea><div id="scMsg" style="min-height:18px;font-size:13px;margin:6px 0"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="scCopy" class="ghost">COPY</button><button id="scLoad" class="ghost">LOAD</button><button id="scClose" class="ghost">CLOSE</button></div></div>';
+  document.body.appendChild(ov);
+  const txt=ov.querySelector('#scText'),msg=ov.querySelector('#scMsg');
+  const open=()=>{txt.value=makeSaveCode();msg.textContent='';ov.style.display='flex'};
+  $('saveCodeBtn').onclick=e=>{e.stopPropagation();open()};
+  ov.querySelector('#scClose').onclick=()=>ov.style.display='none';
+  ov.querySelector('#scCopy').onclick=()=>{txt.value=makeSaveCode();txt.select();try{navigator.clipboard.writeText(txt.value)}catch(e){document.execCommand&&document.execCommand('copy')}msg.textContent='Copied!'};
+  ov.querySelector('#scLoad').onclick=()=>{
+    if(applySaveCode(txt.value)){msg.textContent='Loaded! Reloading…';setTimeout(()=>location.reload(),500)}
+    else msg.textContent='That is not a valid save code.';
+  };
+  ov.addEventListener('keydown',e=>e.stopPropagation());
+})();
 function startMatch(seed,squad){
   if(!inLobby)return;
   P.name=SAVE.name;NET.active=!!squad;
