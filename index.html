@@ -189,6 +189,7 @@
     <div id="feed"></div>
   </div>
   <div id="cross"></div>
+  <div id="chestHint" style="display:none;position:absolute;left:50%;top:60%;transform:translateX(-50%);background:rgba(60,35,12,.85);border:2px solid #b88a4a;color:#ffe2a8;padding:6px 14px;border-radius:8px;font-weight:800;pointer-events:none">E — OPEN CHEST</div>
   <div id="toast"></div>
   <div id="prompt"></div>
   <div id="mode">BUILD MODE — 1 Wall · 2 Floor · 3 Ramp · Click to place · Q to exit</div>
@@ -1415,6 +1416,7 @@ const brickMat=i=>brickMats[i]||(brickMats[i]=new T.MeshStandardMaterial({color:
 function clearEntities(){
   for(const b of bots)scene.remove(b.mesh);bots.length=0;
   for(const pk of pickups)scene.remove(pk.mesh);pickups.length=0;
+  for(const c of chests)scene.remove(c.mesh);chests.length=0;
 }
 function setupMode(id){
   MODE=MODES[id]||MODES.br;
@@ -1900,6 +1902,51 @@ function spawnPickup(type,x,z,opt){
   pickups.push({type,x,z,mesh:m,ph:mrand()*6,y:groundAt(x,z,50),wk:opt.wk,rar:opt.rar,col});
 }
 
+/* ============================ CHESTS ============================ */
+const chests=[];
+const chestWood=new T.MeshStandardMaterial({color:0x1a0c04,roughness:.95,metalness:0}),
+  woodDark=new T.MeshStandardMaterial({color:0x0e0702,roughness:1,metalness:0}),
+  ironMat=new T.MeshStandardMaterial({color:0x1a1816,roughness:.7,metalness:.6}),
+  brassMat=new T.MeshStandardMaterial({color:0x4a3a10,roughness:.5,metalness:.7});
+function makeChestMesh(){
+  const g=new T.Group(),bx=(w,h,d,m,x,y,z,p)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;(p||g).add(o);return o};
+  bx(1.1,.55,.7,chestWood,0,.275,0);
+  for(const x of[-.4,.4])bx(.1,.58,.74,ironMat,x,.28,0);
+  for(const y of[.12,.42])bx(1.12,.05,.72,woodDark,0,y,0);
+  const lid=new T.Group();lid.position.set(0,.55,-.35);g.add(lid);
+  const top=new T.Mesh(new T.CylinderGeometry(.35,.35,1.1,12,1,false,0,Math.PI).rotateZ(Math.PI/2).rotateX(0),chestWood);top.position.set(0,0,.35);top.rotation.set(0,0,0);top.castShadow=true;lid.add(top);
+  for(const x of[-.4,.4]){const b=new T.Mesh(new T.CylinderGeometry(.37,.37,.1,12,1,false,0,Math.PI).rotateZ(Math.PI/2),ironMat);b.position.set(x,0,.35);lid.add(b)}
+  bx(.14,.16,.06,brassMat,0,-.05,.72,lid);
+  g.userData.lid=lid;return g;
+}
+function spawnChest(x,z){
+  const m=makeChestMesh(),y=groundAt(x,z,50);m.position.set(x,y,z);m.rotation.y=mrand()*6.28;scene.add(m);
+  chests.push({x,z,y,mesh:m,open:false,t:0});
+}
+function openChest(c,by){
+  if(c.open)return;c.open=true;c.by=by;sfx('crash',distVol(c.x,c.z)*.5);
+  const n=2+(mrand()<.4?1:0);
+  for(let i=0;i<n;i++){
+    const a=mrand()*6.28,r=1.3+mrand()*.8,px=c.x+Math.cos(a)*r,pz=c.z+Math.sin(a)*r;
+    const t=i===0?'wpn':pick(['wpn','med','shield','ammo','ammo','mats']);
+    spawnPickup(t,px,pz);
+  }
+  burst(c.x,c.y+.7,c.z,0xc9a45a,10,5);
+}
+function nearestChest(x,z,maxD){let best=null,bd=maxD;for(const c of chests){if(c.open)continue;const d=Math.hypot(c.x-x,c.z-z);if(d<bd){bd=d;best=c}}return best}
+function updateChests(dt){
+  for(const c of chests){const lid=c.mesh.userData.lid;
+    if(c.open&&c.t<1){c.t=Math.min(1,c.t+dt*3);lid.rotation.x=-c.t*1.9}}
+  const el=$('chestHint');if(!el)return;
+  const c=running&&P.alive&&P.state==='foot'&&!P.build&&!gameOver?nearestChest(P.x,P.z,2.6):null;
+  el.style.display=c?'block':'none';
+}
+function tryOpenChest(){
+  if(P.state!=='foot'||P.build||!P.alive)return false;
+  const c=nearestChest(P.x,P.z,2.6);if(!c)return false;
+  openChest(c,P);qEvent('pickup',1);return true;
+}
+
 /* ============================ BUILDING (FORTNITE) ============================ */
 const BUILD_COST=10;
 const woodMat=new T.MeshStandardMaterial({map:woodTex,roughness:.85});
@@ -2356,6 +2403,7 @@ function updateBots(dt){
         }}
       b.target=best;
       if(b.cop&&MST.stars>.01)b.goal={x:P.x,z:P.z};
+      if(MODE.id==='br'&&b.w&&!b.target&&storm.state!=='shrink'){const c=nearestChest(b.x,b.z,b.looted>=2?40:110);if(c&&(!b.goalChest||b.goalChest.open)){b.goalChest=c;b.goal={x:c.x,z:c.z}}}
       if(!b.goal||Math.hypot(b.goal.x-b.x,b.goal.z-b.z)<4||mrand()<.08){
         b.goal=pickGoal(b);
       }
@@ -2420,8 +2468,10 @@ function updateBots(dt){
     if(b.mesh.userData.tag)b.mesh.userData.tag.visible=Math.hypot(b.x-P.x,b.z-P.z)<45;
     animateHuman(b,dt,l>0?sp:0,aiming);
     // traffic hits handled in updateTraffic; storm in updateStorm
+    if(b.goalChest){const c=b.goalChest;if(c.open)b.goalChest=null;else if(Math.hypot(c.x-b.x,c.z-b.z)<2){openChest(c,b);b.looted=(b.looted||0)+1;b.goalChest=null;b.goal=null}}
     // pickups
     for(let i=pickups.length-1;i>=0;i--){const pk=pickups[i];if(Math.hypot(pk.x-b.x,pk.z-b.z)<1.5&&!b.civ&&!b.cop&&pk.type!=='gold'&&pk.type!=='cash'){
+      if(pk.type==='wpn'&&b.w&&(pk.rar>b.w.rar||(pk.rar===b.w.rar&&mrand()<.3)))b.w={k:pk.wk,rar:pk.rar};
       if(pk.type==='med')b.hp=Math.min(100,b.hp+50);else if(pk.type==='shield')b.shield=Math.min(100,b.shield+50);
       scene.remove(pk.mesh);pickups.splice(i,1)}}
   }
@@ -2543,7 +2593,7 @@ addEventListener('keydown',e=>{
   switch(e.code){
     case'KeyF':enterExitCar();break;
     case'KeyR':startReload();break;
-    case'KeyE':{const ids=SAVE.eq.emotes.filter(Boolean);if(ids.length&&P.state==='foot'&&P.onGround&&!P.build){const it=byId(ids[(P.emoteIdx=(P.emoteIdx||0)%ids.length)]);P.emoteIdx++;if(it)startEmote(it)}break}
+    case'KeyE':{if(tryOpenChest())break;const ids=SAVE.eq.emotes.filter(Boolean);if(ids.length&&P.state==='foot'&&P.onGround&&!P.build){const it=byId(ids[(P.emoteIdx=(P.emoteIdx||0)%ids.length)]);P.emoteIdx++;if(it)startEmote(it)}break}
     case'KeyZ':case'KeyX':case'KeyC':{if(P.state==='foot'&&P.onGround&&!P.build){const it=byId(SAVE.eq.emotes['ZXC'.indexOf(e.code[3])]);if(it)startEmote(it)}break}
     case'KeyQ':if(P.state==='foot'){P.build=!P.build;sfx('build',.4)}break;
     case'BracketLeft':case'BracketRight':P.sens=clamp(P.sens*(e.code==='BracketLeft'?.85:1.15),.3,3);toast('Sensitivity '+P.sens.toFixed(2),900);break;
@@ -2702,7 +2752,7 @@ function init(){
   for(let i=0;i<24;i++)spawnBot(i);
   for(let i=0;i<38;i++)spawnParked();
   for(let i=0;i<14;i++)spawnTraffic();
-  for(let i=0;i<90;i++){const p=freeSpot(1.5);spawnPickup(['med','shield','ammo','wpn','mats','wpn','ammo','mats','wpn'][i%9],p.x,p.z)}
+  for(let i=0;i<70;i++){const p=freeSpot(2.5);spawnChest(p.x,p.z)}
   $('loading').classList.add('hidden');
   $('lobby').classList.remove('hidden');setLobbyChar();showTab('lobby');refreshPlay();renderModes();netInit();
 }
@@ -2715,7 +2765,7 @@ function frame(now){
     timeNow+=dt;
     if(!paused){
       if(P.alive||true){updatePlayer(dt)}
-      updateBots(dt);updateTraffic(dt);updateIdleCars(dt);updateStorm(dt);updateModes(dt);updateQuests(dt);
+      updateBots(dt);updateChests(dt);updateTraffic(dt);updateIdleCars(dt);updateStorm(dt);updateModes(dt);updateQuests(dt);
       // pickups spin
       for(const pk of pickups){pk.ph+=dt*2;pk.mesh.rotation.y=pk.ph;pk.mesh.position.y=pk.y+1+Math.sin(pk.ph)*.2}
       for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.life-=dt;
@@ -2738,7 +2788,7 @@ function frame(now){
 }
 init();
 requestAnimationFrame(frame);
-window.__game={qEvent,get QUESTS(){return QUESTS},LANDMARKS,heading,openMap,closeMap,toggleMap,get mapOpen(){return mapOpen},get WP(){return WP},pickups,MS:MST,TS:TSC,MODES,getMode:()=>MODE,setMode:id=>{SAVE.mode=id},bump:a=>bumpWanted(a),NET,genName,joinParty,createParty,end:w=>endGame(w),W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount}};
+window.__game={qEvent,get QUESTS(){return QUESTS},LANDMARKS,heading,openMap,closeMap,toggleMap,get mapOpen(){return mapOpen},get WP(){return WP},pickups,MS:MST,TS:TSC,MODES,getMode:()=>MODE,setMode:id=>{SAVE.mode=id},bump:a=>bumpWanted(a),NET,genName,joinParty,createParty,end:w=>endGame(w),W:WEAPONS,fire:()=>fireWeapon(),ray:(o,d)=>castRay(o,d,320,P),aim:()=>aimInfo(),P,bots,vehicles,storm,boxes,start:()=>$('lbPlay').click(),SAVE:()=>SAVE,stock:(n)=>shopStock(n),cat:()=>CATALOG,gen:n=>genDrop(n),keys,get alive(){return aliveCount},chests};
 })();
 </script>
 </body>

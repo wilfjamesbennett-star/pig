@@ -32,6 +32,7 @@ Click **PLAY** (mouse is captured; Esc pauses).
 - **Every Monday** a scheduled Claude session also adds one hand-made addition (new skin, emote, weapon, map piece…) and logs it below.
 
 ### Changelog
+- 2026-10-12: Battle Royale loot now lives in old wooden chests: press **E** next to one to open it (2-3 items, always a weapon). Bots walk to chests and open them too.
 - 2026-10-12: Added a 💾 SAVE CODE button in the lobby: copy a short save code and load it on any other device or browser (shards, items, stats).
 - 2026-10-12: Free Roam and Brick World now autosave (position, cash, ammo, gold bricks, built bricks) and resume when you press PLAY again.
 - 2026-10-12: New weapons (SMG, sniper, rocket launcher) with 5 rarity tiers, weapon loot, and smarter bots with weapons and difficulty tiers.
