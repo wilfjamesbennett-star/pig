@@ -1484,7 +1484,7 @@ function endTeamMatch(){
   endMode(win,w?(win?'VICTORY':'DEFEAT'):'DRAW',`${w?TEAMS[w].name+' TEAM WINS':'Time up'} · BLUE ${TSC.blue} – ${TSC.red} RED · ${P.kills} eliminations`,P.kills*10+(win?50:0));
 }
 function endMode(win,title,sub,reward){
-  if(gameOver)return;gameOver=true;closeMap();
+  if(gameOver)return;gameOver=true;closeMap();clearRun();
   SAVE.vb+=reward;SAVE.stats.kills+=P.kills;if(win)SAVE.stats.wins++;persist();
   document.exitPointerLock&&document.exitPointerLock();
   setTimeout(()=>{
@@ -1494,7 +1494,7 @@ function endMode(win,title,sub,reward){
 }
 function leaveMatch(){
   if(MODE.id==='roam'&&!gameOver){endMode(false,'FREE ROAM OVER',`You left with $${P.cash} · ${P.kills} takedowns`,Math.min(100,Math.floor(P.cash/50)));return}
-  persist();location.reload();
+  saveRun();persist();location.reload();
 }
 function checkGold(){
   toast(`GOLD BRICK ${MST.gold}/${MST.GOLD}`,1200);
@@ -1900,16 +1900,19 @@ function buildPlan(){
 function placePiece(){
   const pl=buildPlan();if(!pl.ok){sfx('hit',.3);return}
   if(!MODE.freeBuild)P.mats-=BUILD_COST;
-  const mesh=pieceMesh(pl.type,{dx:pl.dx,dz:pl.dz},MODE.id==='brick'?brickMat(P.brickColor||0):woodMat);
+  createPiece(pl,P.brickColor||0);
+  sfx('build',.9);qEvent('build',1);
+}
+function createPiece(pl,col){
+  const mesh=pieceMesh(pl.type,{dx:pl.dx,dz:pl.dz},MODE.id==='brick'?brickMat(col):woodMat);
   if(pl.type===0)mesh.position.set(pl.cx,pl.lvl+1.5,pl.cz);
   else if(pl.type===1)mesh.position.set(pl.cx,pl.lvl+.15,pl.cz);
   else mesh.position.set(pl.cx,pl.lvl+1.5,pl.cz);
   scene.add(mesh);
   const box=addCollider(pl.x0,pl.x1,pl.z0,pl.z1,pl.y0,pl.y1,{hp:130,piece:true,ramp:pl.type===2?{dx:pl.dx,dz:pl.dz}:null});
   if(pl.type===1){box.y0=pl.lvl}
-  const piece={key:pl.key,mesh,box};box.owner=piece;pieces.push(piece);
-  sfx('build',.9);qEvent('build',1);
-  // drop player onto a floor/ramp we are standing in? let physics handle it
+  const piece={key:pl.key,mesh,box,pl:{type:pl.type,cx:pl.cx,cz:pl.cz,lvl:pl.lvl,dx:pl.dx,dz:pl.dz,key:pl.key,x0:pl.x0,x1:pl.x1,z0:pl.z0,z1:pl.z1,y0:pl.y0,y1:pl.y1},col};box.owner=piece;pieces.push(piece);
+  return piece;
 }
 function destroyPiece(piece){
   scene.remove(piece.mesh);
@@ -2535,6 +2538,42 @@ function makePlayerMesh(){
   const m=MODE.id==='brick'?miniFor(byId(SAVE.eq.outfit)||OUTFITS[0]):buildCharacter(SAVE.eq.outfit,SAVE.eq.bling,false,P.team?TEAMS[P.team]:null);
   setTag(m,SAVE.name,P.team?TEAMS[P.team].css:'#ffd23f',.7);return m;
 }
+/* ---- in-match progress (Free Roam + Brick World) ---- */
+const RUN_KEY='outlawrush.run.v1';
+function saveRun(){
+  if(!running||gameOver||inLobby||(MODE.id!=='roam'&&MODE.id!=='brick'))return;
+  try{
+    const r={mode:MODE.id,x:P.x,z:P.z,yaw:P.camYaw,hp:P.hp,shield:P.shield,cash:P.cash,kills:P.kills,mats:P.mats,weapon:P.weapon,
+      ammo:WEAPONS.map(w=>[w.mag,w.res]),stars:MST.stars,gold:MST.gold,brickT:MST.brickT,t:MST.t,bc:P.brickColor||0};
+    if(MODE.id==='brick'){
+      r.goldLeft=pickups.filter(p=>p.type==='gold').map(p=>[p.x,p.z]);
+      r.pieces=pieces.map(p=>[p.pl,p.col||0]);
+    }
+    localStorage.setItem(RUN_KEY,JSON.stringify(r));
+  }catch(e){}
+}
+function clearRun(){try{localStorage.removeItem(RUN_KEY)}catch(e){}}
+function restoreRun(){
+  let r=null;
+  try{r=JSON.parse(localStorage.getItem(RUN_KEY)||'null')}catch(e){}
+  if(!r||r.mode!==MODE.id)return false;
+  try{
+    P.x=r.x;P.z=r.z;P.camYaw=r.yaw||0;P.hp=r.hp>0?r.hp:100;P.shield=r.shield||0;P.cash=r.cash||0;P.kills=r.kills||0;
+    if(r.mats!==undefined)P.mats=r.mats;P.weapon=r.weapon||0;
+    (r.ammo||[]).forEach((a,i)=>{if(WEAPONS[i]){WEAPONS[i].mag=a[0];WEAPONS[i].res=a[1]}});
+    MST.stars=r.stars||0;MST.gold=r.gold||0;MST.brickT=r.brickT||0;MST.t=r.t||0;P.brickColor=r.bc||0;
+    if(MODE.id==='brick'){
+      for(const pk of pickups)if(pk.type==='gold')scene.remove(pk.mesh);
+      pickups=pickups.filter(p=>p.type!=='gold');
+      for(const g of r.goldLeft||[])spawnPickup('gold',g[0],g[1]);
+      for(const [pl,col] of r.pieces||[])createPiece(pl,col);
+    }
+    return true;
+  }catch(e){clearRun();return false}
+}
+setInterval(saveRun,4000);
+addEventListener('pagehide',saveRun);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveRun()});
 function startMatch(seed,squad){
   if(!inLobby)return;
   P.name=SAVE.name;NET.active=!!squad;
@@ -2549,11 +2588,12 @@ function startMatch(seed,squad){
     const ids=[SAVE.uid,...partyMembers().map(p=>p.presence.u)].sort(),slot=Math.max(0,ids.indexOf(SAVE.uid));
     P.x=sx+slot*4;P.z=sz+slot*3;
   }
+  const resumed=restoreRun();
   SAVE.stats.matches++;persist();
   initAudio();inLobby=false;
   $('lobby').classList.add('hidden');$('hud').classList.remove('hidden');
   running=true;lock();
-  toast(squad?'SQUAD DROP — LAND NEAR YOUR FRIENDS':(MODE.start||'DROPPING INTO OUTLAW RUSH'),3000);
+  toast(resumed?'PROGRESS RESTORED — WELCOME BACK':squad?'SQUAD DROP — LAND NEAR YOUR FRIENDS':(MODE.start||'DROPPING INTO OUTLAW RUSH'),3000);
 }
 $('lbPlay').onclick=startFromLobby;
 $('leave').onclick=e=>{e.stopPropagation();leaveMatch()};

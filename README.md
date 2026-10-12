@@ -31,6 +31,7 @@ Click **PLAY** (mouse is captured; Esc pauses).
 - **Every Monday** a scheduled Claude session also adds one hand-made addition (new skin, emote, weapon, map piece…) and logs it below.
 
 ### Changelog
+- 2026-10-12: Free Roam and Brick World now autosave (position, cash, ammo, gold bricks, built bricks) and resume when you press PLAY again.
 - 2026-10-10: Everything on foot is now first-person in every mode.
 - 2026-10-10: Anime cel-shaded skins, lobby / locker / rotating item shop, Vex-Shards currency, weekly drops.
 - 2026-10-10: Online play: names + name tags, random rival names, friends list (requests), parties, squad co-op (uses the artifact `room` capability).
